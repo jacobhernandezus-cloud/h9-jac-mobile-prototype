@@ -44,6 +44,12 @@
   .card ul{margin:10px 0 0 2px;padding:0;list-style:none}
   .card li{font-size:13px;color:#5a5a52;padding:4px 0 4px 18px;position:relative}
   .card li:before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+  .deep{display:flex;align-items:center;gap:16px;margin-top:18px;background:#fffdf8;border:1.5px solid var(--gold);border-radius:16px;padding:18px 22px;text-decoration:none;transition:.15s}
+  .deep:hover{box-shadow:0 12px 32px rgba(201,165,91,.2)}
+  .deep .di{font-size:30px;flex:none}
+  .deep .dtext{flex:1;font-size:13px;color:#6a6a62;line-height:1.5}
+  .deep .dtext b{font-family:'DM Sans';font-size:15.5px;color:var(--deep-navy);display:block;margin-bottom:2px}
+  .deep .da{flex:none;font-weight:600;color:var(--gold);white-space:nowrap}
 
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;background:#fff;border:1px solid var(--soft-gray);border-radius:14px;overflow:hidden}
   th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--soft-gray)}
@@ -119,6 +125,11 @@
       <ul><li>In-app sign-up</li><li>Same request flows as owner</li><li>Scoped to their aircraft</li></ul>
     </div>
   </div>
+  <a class="deep" href="./Jays-Valet-User-Personas.pptx" download>
+    <span class="di">📑</span>
+    <span class="dtext"><b>Deep dive — full persona deck</b>Owner, line technician &amp; tenant: who they are, what they struggle with today, and the features each one relies on or still needs. PowerPoint · 6 slides.</span>
+    <span class="da">Download&nbsp;→</span>
+  </a>
 
   <h2 class="sec">Feature access</h2>
   <table>
