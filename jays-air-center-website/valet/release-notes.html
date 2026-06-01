@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jay's Valet — Release Notes & Concept</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --warm-white:#F8F6F3;--soft-gray:#E5E3DF;--pearl:#F5F5F0;--charcoal:#1A1A1A;
+    --deep-navy:#1B2838;--gold:#C9A55B;--champagne:#E8DCC4;--sky:#4A90A4;--green:#3E8E5A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:var(--warm-white);color:var(--charcoal);line-height:1.6;font-weight:300}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px 80px}
+
+  /* Hero */
+  header{background:linear-gradient(160deg,#1B2838,#26384c);color:#fff;padding:64px 24px 56px;text-align:center}
+  header .kicker{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+  header h1{font-family:'Cormorant',serif;font-weight:600;font-size:58px;line-height:1;margin:14px 0 6px}
+  header .tag{font-size:16px;color:#9fb0c2;font-weight:300;max-width:580px;margin:0 auto}
+  header .meta{margin-top:22px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.05em;color:#7e93a6}
+
+  /* CTA */
+  .cta-card{background:#fffdf8;border:1.5px solid var(--gold);border-radius:20px;padding:30px;margin:-34px auto 0;max-width:860px;display:flex;align-items:center;gap:24px;box-shadow:0 18px 50px rgba(27,40,56,.18);position:relative}
+  .cta-card .ph{font-size:46px;flex:none}
+  .cta-card .txt{flex:1}
+  .cta-card h2{font-family:'Cormorant',serif;font-size:26px;font-weight:600;line-height:1.1}
+  .cta-card p{font-size:14px;color:#7a7a72;margin-top:4px}
+  .btn{display:inline-flex;align-items:center;gap:9px;background:var(--gold);color:var(--deep-navy);font-weight:600;font-size:15px;text-decoration:none;padding:15px 26px;border-radius:13px;white-space:nowrap;transition:.15s}
+  .btn:hover{background:#b8954c}
+
+  h2.sec{font-family:'Cormorant',serif;font-size:34px;font-weight:600;margin:54px 0 6px;color:var(--deep-navy)}
+  .sec-sub{color:#9a9a90;font-size:14px;margin-bottom:20px}
+  .lead{font-size:17px;color:#3a3a36;font-weight:300}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:8px}
+  .card{background:#fff;border:1px solid var(--soft-gray);border-radius:16px;padding:22px}
+  .card h3{font-family:'DM Sans';font-size:16px;font-weight:600;display:flex;align-items:center;gap:9px}
+  .card .em{font-size:20px}
+  .card p{font-size:13.5px;color:#6a6a62;margin-top:8px}
+  .card ul{margin:10px 0 0 2px;padding:0;list-style:none}
+  .card li{font-size:13px;color:#5a5a52;padding:4px 0 4px 18px;position:relative}
+  .card li:before{content:'';position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;background:#fff;border:1px solid var(--soft-gray);border-radius:14px;overflow:hidden}
+  th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--soft-gray)}
+  th{background:var(--pearl);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5a5a52}
+  td.c,th.c{text-align:center}
+  tr:last-child td{border-bottom:none}
+  .yes{color:var(--green);font-weight:600}
+  .no{color:#c2bfb8}
+
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;font-size:13.5px;font-family:'JetBrains Mono',monospace;color:var(--deep-navy)}
+  .flow span{background:#fff;border:1px solid var(--soft-gray);border-radius:8px;padding:7px 11px}
+  .flow b{color:var(--gold)}
+
+  .timeline{border-left:2px solid var(--soft-gray);margin-top:14px;padding-left:22px}
+  .timeline .item{position:relative;padding:0 0 18px}
+  .timeline .item:before{content:'';position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--gold);border:3px solid var(--warm-white)}
+  .timeline .item b{font-size:15px;font-weight:600}
+  .timeline .item p{font-size:13.5px;color:#6a6a62}
+
+  .pill{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:4px 11px;border-radius:999px;background:rgba(62,142,90,.14);color:var(--green);margin-left:8px}
+  .pill.next{background:rgba(74,144,164,.14);color:var(--sky)}
+  .q{counter-reset:q}
+  .q li{font-size:15px;color:#3a3a36;margin:10px 0;padding-left:6px}
+  footer{text-align:center;color:#9a9a90;font-size:13px;margin-top:60px;padding-top:24px;border-top:1px solid var(--soft-gray)}
+  .brand{font-family:'Cinzel',serif;letter-spacing:.2em;color:var(--deep-navy)}
+  .brand b{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Jay's Air Center · KSNA</div>
+  <h1>Jay's Valet</h1>
+  <div class="tag">Aircraft staging &amp; valet — concept release notes for review</div>
+  <div class="meta">Prepared for George · rev 2 · 2026-06-01</div>
+</header>
+
+<div class="cta-card">
+  <div class="ph">📱</div>
+  <div class="txt">
+    <h2>Try the live prototype</h2>
+    <p>Clickable iOS concept — switch between Owner, Tenant, and Line operator, and flip the tipping toggle for Version A / B.</p>
+  </div>
+  <a class="btn" href="./index.html">Open the prototype&nbsp; →</a>
+</div>
+
+<div class="wrap">
+
+  <h2 class="sec">What this is</h2>
+  <p class="lead">
+    Jay's Valet lets an aircraft owner or tenant <b>summon their plane like a Tesla</b>: request
+    staging or schedule an arrival from the app, the line operator pulls it from the hangar,
+    fuels and stages it on the ramp (or meets it on arrival and parks it), and the customer is
+    notified at every step. This page summarizes current scope, key decisions, and what's next.
+  </p>
+
+  <h2 class="sec">Who uses it — three personas</h2>
+  <div class="sec-sub">Personas define who can do what.</div>
+  <div class="grid">
+    <div class="card">
+      <h3><span class="em">✈️</span> Owner</h3>
+      <p>Based owner with a hangar. Full customer experience, billed to account.</p>
+      <ul><li>Request staging &amp; arrivals</li><li>Fuel &amp; services</li><li>Tipping + history</li></ul>
+    </div>
+    <div class="card">
+      <h3><span class="em">🧑‍✈️</span> Line operator</h3>
+      <p>Jay's ground staff who move, fuel, and park aircraft.</p>
+      <ul><li>Work the request queue</li><li>Advance status</li><li>Receive tips</li></ul>
+    </div>
+    <div class="card">
+      <h3><span class="em">🔑</span> Tenant</h3>
+      <p>Leases a hangar or tie-down. Self-registers in-app, billed per use.</p>
+      <ul><li>In-app sign-up</li><li>Same request flows as owner</li><li>Scoped to their aircraft</li></ul>
+    </div>
+  </div>
+
+  <h2 class="sec">Feature access</h2>
+  <table>
+    <tr><th>Feature</th><th class="c">Owner</th><th class="c">Tenant</th><th class="c">Operator</th></tr>
+    <tr><td>In-app sign-up</td><td class="c no">—</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Request aircraft staging</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Schedule / Announce arrival</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Return aircraft to ramp</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Fuel &amp; services</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Electronic tip (Version A)</td><td class="c yes">send</td><td class="c yes">send</td><td class="c yes">receive</td></tr>
+    <tr><td>Ops queue / advance status</td><td class="c no">—</td><td class="c no">—</td><td class="c yes">✓</td></tr>
+  </table>
+
+  <h2 class="sec">Key flows</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Departure — Request aircraft staging</h3>
+      <p><b>Scheduled only</b>, 2-hour minimum lead (keeps last-minute ramp traffic down).</p>
+      <div class="flow"><span>Request</span><b>→</b><span>Operator assigned</span><b>→</b><span>Towing</span><b>→</b><span>Fuel</span><b>→</b><span>Staged &amp; ready</span></div>
+    </div>
+    <div class="card">
+      <h3>Arrival — Schedule &amp; Announce</h3>
+      <p>Schedule an ETA (~2 hrs out), then announce on final. Services requested before parking.</p>
+      <div class="flow"><span>Announce</span><b>→</b><span>Dispatched</span><b>→</b><span>Meeting aircraft</span><b>→</b><span>Fuel</span><b>→</b><span>Parked</span></div>
+    </div>
+  </div>
+
+  <h2 class="sec">Two versions to compare</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Version A — Concierge</h3>
+      <p>Full flow plus an <b>electronic tip</b> screen after the operator completes the job. 100% to the line operator.</p>
+    </div>
+    <div class="card">
+      <h3>Version B — Standard</h3>
+      <p>Identical flow, <b>no tipping</b>. Ends with a simple rating / thank-you.</p>
+    </div>
+  </div>
+  <p style="margin-top:12px;font-size:14px;color:#6a6a62">In the prototype, the <b>tipping toggle</b> at the top switches between A and B live.</p>
+
+  <h2 class="sec">Decisions in this iteration <span class="pill">rev 2</span></h2>
+  <div class="timeline">
+    <div class="item"><b>Three personas formalized</b><p>Owner, line operator, tenant — each with a defined feature set.</p></div>
+    <div class="item"><b>Departures are scheduled only</b><p>2-hour minimum lead; removed "stage now" to prevent last-minute ramp congestion.</p></div>
+    <div class="item"><b>Renamed actions</b><p>"Stage aircraft for departure" → "Request aircraft staging"; "Return to hangar" → "Return aircraft to ramp."</p></div>
+    <div class="item"><b>Arrival journey added</b><p>"Schedule arrival" + "Announce arrival," with a request-services step before parking.</p></div>
+    <div class="item"><b>Fuel simplified</b><p>Only "Top off Jet A" / "Top off 100LL," each fills the tank. Removed set-quantity.</p></div>
+    <div class="item"><b>Tenant self-sign-up</b><p>Renters onboard themselves in-app, billed per use.</p></div>
+  </div>
+
+  <h2 class="sec">Roadmap <span class="pill next">next</span></h2>
+  <div class="grid">
+    <div class="card"><h3>Near term</h3><ul><li>Real auth + per-user aircraft</li><li>Real push (APNs) + SMS fallback</li><li>Payments + tip payout (Stripe)</li></ul></div>
+    <div class="card"><h3>Later</h3><ul><li>Billing integration with Jay's FBO software</li><li>Multi-aircraft / flight-department accounts</li><li>Operator scheduling + SLA timers</li><li>Live ramp map</li></ul></div>
+  </div>
+
+  <h2 class="sec">Open questions for you</h2>
+  <ol class="q">
+    <li>Tipping in or out for v1? (Drives whether we ship Version A or B.)</li>
+    <li>Is a 2-hour departure minimum right, or should it flex by aircraft type / time of day?</li>
+    <li>Should tenant sign-up need Jay's approval, or be instant?</li>
+    <li>Do fuel/services get <b>billed</b> through the app, or just <b>requested</b>?</li>
+    <li>Any existing FBO software we must integrate with for billing / aircraft data?</li>
+  </ol>
+
+  <footer>
+    <div class="brand">JAY'S <b>VALET</b></div>
+    <p style="margin-top:8px">Concept prototype · Jay's Air Center · KSNA · 2026-06-01</p>
+  </footer>
+</div>
+
+</body>
+</html>
