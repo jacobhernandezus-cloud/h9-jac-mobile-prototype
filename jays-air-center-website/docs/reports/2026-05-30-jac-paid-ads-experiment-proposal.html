@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Jay's Air Center — Paid Social Experiment Proposal</title>
+    <meta name="description" content="$500 paid social ads experiment proposal for Jay's Air Center at John Wayne Airport.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=Geologica:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --orange: #FF8C00;
+            --orange-glow: rgba(255, 140, 0, 0.35);
+            --orange-soft: rgba(255, 140, 0, 0.08);
+            --navy: #142338;
+            --navy-deep: #0c1626;
+            --navy-soft: #1a2c47;
+            --cream: #FAF8F4;
+            --pearl: #F0F0F0;
+            --text-black: #1E1E1E;
+            --text-muted: #5a6573;
+            --rule: rgba(20, 35, 60, 0.08);
+            --rule-strong: rgba(20, 35, 60, 0.16);
+            --sage: #6d8473;
+            --rust: #b3613f;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: var(--cream);
+            color: var(--text-black);
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .doc {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 56px 48px 48px;
+        }
+
+        /* HEADER */
+        header.top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.55rem;
+            background: var(--navy);
+            border: 1.5px solid var(--orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--orange);
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+        .wordmark {
+            font-family: 'Geologica', 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--navy);
+        }
+        .header-meta {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* EYEBROW */
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--orange);
+            margin-bottom: 12px;
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--orange);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--orange-glow);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.55; transform: scale(0.88); }
+        }
+
+        h1 {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 44px;
+            letter-spacing: 0.01em;
+            line-height: 1.05;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 0 0 14px;
+        }
+        .subtitle {
+            font-size: 17px;
+            color: var(--text-muted);
+            margin: 0 0 36px;
+            max-width: 680px;
+        }
+
+        /* TLDR CARD */
+        .tldr {
+            background: var(--navy);
+            color: var(--cream);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin: 0 0 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .tldr::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 140, 0, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 140, 0, 0.08) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .tldr-inner { position: relative; }
+        .tldr-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--orange);
+            margin: 0 0 12px;
+        }
+        .tldr-body {
+            font-size: 16px;
+            line-height: 1.55;
+            margin: 0;
+            font-weight: 400;
+        }
+        .tldr-body strong { color: var(--orange); }
+        .tldr-body p { margin: 0 0 10px; }
+        .tldr-body p:last-child { margin-bottom: 0; }
+
+        /* SECTION HEADINGS */
+        h2 {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 0.02em;
+            line-height: 1.1;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 44px 0 8px;
+        }
+        h2 + .rule {
+            width: 56px;
+            height: 3px;
+            background: var(--orange);
+            box-shadow: 0 0 12px var(--orange-glow);
+            margin: 0 0 18px;
+            border-radius: 1.5px;
+        }
+        h3 {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 24px 0 10px;
+        }
+
+        p { margin: 0 0 14px; }
+        ul { padding-left: 20px; margin: 0 0 14px; }
+        li { margin-bottom: 6px; }
+
+        /* TABLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            font-weight: 600;
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 10px 12px 10px 0;
+            border-bottom: 1px solid var(--rule-strong);
+        }
+        td {
+            padding: 12px 12px 12px 0;
+            border-bottom: 1px solid var(--rule);
+            vertical-align: top;
+        }
+        td.num, th.num {
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+        td strong { color: var(--navy); }
+
+        /* CALLOUTS */
+        .callout {
+            background: var(--orange-soft);
+            border-left: 3px solid var(--orange);
+            border-radius: 4px;
+            padding: 18px 22px;
+            margin: 16px 0;
+            font-size: 15px;
+        }
+        .callout strong { color: var(--navy); }
+
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin: 18px 0;
+        }
+        .roi-card {
+            background: #fff;
+            border: 1px solid var(--rule);
+            border-radius: 8px;
+            padding: 18px 20px;
+        }
+        .roi-card-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .roi-card-value {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 26px;
+            color: var(--navy);
+            line-height: 1.05;
+        }
+        .roi-card-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* TIMELINE */
+        .phases {
+            margin: 16px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .phase {
+            display: grid;
+            grid-template-columns: 140px 1fr 100px;
+            gap: 20px;
+            padding: 18px 0;
+            border-top: 1px solid var(--rule);
+            align-items: start;
+        }
+        .phase:last-child { border-bottom: 1px solid var(--rule); }
+        .phase-when {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--orange);
+        }
+        .phase-when small {
+            display: block;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: 12px;
+            letter-spacing: normal;
+            text-transform: none;
+            margin-top: 4px;
+        }
+        .phase-what strong {
+            color: var(--navy);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+        .phase-what span {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .phase-cost {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--navy);
+            text-align: right;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 64px;
+            padding-top: 24px;
+            border-top: 1px solid var(--rule);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        a {
+            color: var(--navy);
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-decoration-color: var(--orange);
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: var(--orange); }
+
+        @media (max-width: 640px) {
+            .doc { padding: 32px 24px 32px; }
+            h1 { font-size: 32px; }
+            .tldr { padding: 22px 24px; }
+            .roi-grid { grid-template-columns: 1fr; }
+            .phase { grid-template-columns: 1fr; gap: 6px; }
+            .phase-cost { text-align: left; }
+            .header-meta { display: none; }
+            table { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="doc">
+
+        <header class="top">
+            <div class="brand">
+                <div class="logo-mark">H9</div>
+                <div class="wordmark">H9 Partners</div>
+            </div>
+            <div class="header-meta">
+                For George Sumner<br>
+                2026-05-30
+            </div>
+        </header>
+
+        <div class="eyebrow">
+            <div class="pulse-dot"></div>
+            <span>Jay's Air Center · Experiment Proposal</span>
+        </div>
+
+        <h1>$500 Paid Social Experiment</h1>
+        <p class="subtitle">
+            A short, contained paid-ads experiment to see whether we can profitably acquire qualified hangar and FBO inquiries through Instagram/Facebook ads, on top of the organic traffic already arriving at jaysaircenter.com.
+        </p>
+
+        <div class="tldr">
+            <div class="tldr-inner">
+                <p class="tldr-label">The Short Version</p>
+                <p class="tldr-body">
+                    <strong>What:</strong> Spend $500 over 3 weeks running Instagram and Facebook ads targeted to high-net-worth pilots and aircraft owners within 50 miles of SNA. Drive them to jaysaircenter.com.
+                </p>
+                <p class="tldr-body" style="margin-top: 8px;">
+                    <strong>Why now:</strong> The CTA experiment running organically has shown the funnel works (4 real form completions in week 1) and we have qualified industry referrers (NBAA, OCair.com, AirNav) already finding us. Paid is the natural next step to test whether we can buy more of the same.
+                </p>
+                <p class="tldr-body" style="margin-top: 8px;">
+                    <strong>Realistic outcome:</strong> 100+ button clicks and 10+ form completions from the $500, with a pipeline value somewhere in the <strong>$540K to $1M+ range</strong> based on aviation lifetime-value math.
+                </p>
+                <p class="tldr-body" style="margin-top: 8px;">
+                    <strong>What we need from you:</strong> 15 minutes to react to this proposal, ~1 hour to set up a Meta Business account for JAC, and willingness to handle 10-50 inquiries arriving in your inbox over 3 weeks.
+                </p>
+            </div>
+        </div>
+
+        <h2>Why Try This Now</h2>
+        <div class="rule"></div>
+        <p>
+            The CTA experiment that launched 5/23 has already produced four real form submissions and surfaced excellent organic referrers — NBAA.org, OCair.com, AirNav.com — which means the right audience is already finding the site. The question worth answering before that organic experiment closes on June 6: can we buy more of this exact traffic profitably?
+        </p>
+        <p>
+            $500 is a small enough check that even a disappointing result doesn't hurt. But it's large enough to generate a meaningful sample size in 3 weeks. And paid traffic gives us another lever — once we know what creative and audience converts, we can choose to scale anywhere from $0 to whatever budget we want.
+        </p>
+
+        <h2>The Economics</h2>
+        <div class="rule"></div>
+
+        <h3>Cost side — what $500 typically buys</h3>
+        <table>
+            <thead>
+                <tr><th>Channel</th><th class="num">Typical CPC</th><th class="num">Clicks for $500</th><th>Fit</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>Meta — Instagram + Facebook</strong></td><td class="num">$1-5</td><td class="num">100-500</td><td>Best beginner channel; strong aviation interest targeting</td></tr>
+                <tr><td>Google Ads (aviation keywords)</td><td class="num">$5-20</td><td class="num">25-100</td><td>High intent but expensive at our budget</td></tr>
+                <tr><td>LinkedIn (flight departments)</td><td class="num">$5-30</td><td class="num">17-100</td><td>Right audience, too expensive for $500</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Revenue side — what's one form completion worth?</h3>
+        <p>
+            These are assumptions based on industry benchmarks for premium FBO services at SNA. Please correct any that don't match your actuals — the ROI math is sensitive to them.
+        </p>
+        <table>
+            <thead>
+                <tr><th>Customer type</th><th class="num">Monthly $</th><th class="num">Avg tenure</th><th class="num">Lifetime value</th><th class="num">Close rate</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Hangar tenant</td><td class="num">$8K–$15K</td><td class="num">5 yrs</td><td class="num">$480K–$900K</td><td class="num">~12.5%</td></tr>
+                <tr><td>FBO / tie-down</td><td class="num">$500–$2.5K</td><td class="num">3 yrs</td><td class="num">$18K–$90K</td><td class="num">~35%</td></tr>
+                <tr><td>Office space</td><td class="num">$2K–$5K</td><td class="num">3 yrs</td><td class="num">$72K–$180K</td><td class="num">~20%</td></tr>
+            </tbody>
+        </table>
+
+        <div class="callout">
+            <strong>Blended expected value per form_completed:</strong> approximately <strong>$54,000</strong> — assuming a 50% hangar / 30% FBO / 20% office interest mix and the close rates above. This is the number the ROI math below uses. If your actual hangar close rate is closer to 5%, the blended EV drops to ~$31K; if it's 20%, it climbs to ~$72K.
+        </div>
+
+        <h3>ROI scenarios</h3>
+        <div class="roi-grid">
+            <div class="roi-card">
+                <div class="roi-card-label">Pessimistic outcome</div>
+                <div class="roi-card-value">540×</div>
+                <div class="roi-card-sub">5 form_completed × $54K EV = $270K pipeline / $500 spend</div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-card-label">Realistic outcome</div>
+                <div class="roi-card-value">1,080–2,160×</div>
+                <div class="roi-card-sub">10–20 form_completed = $540K–$1.08M pipeline / $500</div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-card-label">Optimistic outcome</div>
+                <div class="roi-card-value">2,700–4,320×</div>
+                <div class="roi-card-sub">25–40 form_completed = $1.35M–$2.16M pipeline / $500</div>
+            </div>
+            <div class="roi-card">
+                <div class="roi-card-label">If we hit stretch target</div>
+                <div class="roi-card-value">10,800×</div>
+                <div class="roi-card-sub">100 form_completed = $5.4M pipeline / $500 (unlikely at this budget — included for reference)</div>
+            </div>
+        </div>
+
+        <p style="font-size: 14px; color: var(--text-muted);">
+            Even the pessimistic case generates 540× ROI because aviation lifetime values are large. The real risk isn't financial — it's wasted attention if the targeting doesn't qualify the audience.
+        </p>
+
+        <h2>The Targets</h2>
+        <div class="rule"></div>
+        <p>Two complementary KPIs so we can read both engagement and quality independently.</p>
+        <table>
+            <thead>
+                <tr><th>Metric</th><th class="num">Target</th><th class="num">Stretch</th><th>What this tells us</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>cta_clicked from paid</strong></td><td class="num">100</td><td class="num">200</td><td>Did paid traffic engage with the CTA at all?</td></tr>
+                <tr><td><strong>form_completed from paid</strong></td><td class="num">10</td><td class="num">25+</td><td>Did paid traffic actually inquire?</td></tr>
+                <tr><td>Cost per cta_clicked</td><td class="num">&lt;$5</td><td class="num">&lt;$2</td><td>Is the channel right for our audience?</td></tr>
+                <tr><td>Cost per form_completed</td><td class="num">&lt;$50</td><td class="num">&lt;$25</td><td>Is the funnel working for paid traffic?</td></tr>
+            </tbody>
+        </table>
+
+        <h2>The Plan — 3 Phases Over 3 Weeks</h2>
+        <div class="rule"></div>
+
+        <ul class="phases">
+            <li class="phase">
+                <div class="phase-when">Days 1-7<br><small>Audience discovery</small></div>
+                <div class="phase-what">
+                    <strong>Find out who clicks.</strong>
+                    <span>Run 3 ad sets in parallel with the same creative but different targeting. Test broad aviation interest vs. narrow HNW homeowner vs. lookalike audience. Pick the winner by cost-per-click.</span>
+                </div>
+                <div class="phase-cost">$150</div>
+            </li>
+            <li class="phase">
+                <div class="phase-when">Days 8-14<br><small>Creative iteration</small></div>
+                <div class="phase-what">
+                    <strong>Find out what works.</strong>
+                    <span>Take the winning audience from Phase 1. Test 3 different ad creatives — single image, multi-image carousel, short Reel video. Pick the winner by cost-per-click and form-completion rate.</span>
+                </div>
+                <div class="phase-cost">$200</div>
+            </li>
+            <li class="phase">
+                <div class="phase-when">Days 15-21<br><small>Scale + lookalike</small></div>
+                <div class="phase-what">
+                    <strong>Validate scalability.</strong>
+                    <span>Take the winning audience + creative combo. Add a lookalike audience seeded from form submissions so far. Run at $50/day for 3 days. Final read-out at end of week 3.</span>
+                </div>
+                <div class="phase-cost">$150</div>
+            </li>
+        </ul>
+        <p style="font-size: 14px; color: var(--text-muted); margin-top: 12px;">
+            Total: $500 hard cap. $50 reserved unspent throughout for any "boost the winner" push in the final week.
+        </p>
+
+        <h2>What You Will Notice</h2>
+        <div class="rule"></div>
+        <p>
+            During the 3 weeks of the experiment, two things change for you operationally:
+        </p>
+        <ul>
+            <li><strong>Inquiry volume increases.</strong> Realistic case: 10–25 form submissions in your inbox over 3 weeks (so 1–2 per business day on average, with bursts). Stretch case: 25–40. Plan response capacity accordingly.</li>
+            <li><strong>Inquiry mix shifts toward awareness-stage prospects.</strong> Organic visitors today self-select — they're already researching hangar space. Paid visitors may be earlier in the buying conversation. The conversation may need to start with "let me explain what we offer" rather than "let me tell you about availability."</li>
+        </ul>
+        <p>
+            The live dashboard at <a href="https://jaysaircenter.com/dashboard">jaysaircenter.com/dashboard</a> separates paid from organic traffic so we can see the difference in real time. The credentials Daniel sent you earlier still work; the dashboard refreshes on every page load.
+        </p>
+
+        <h2>What This Doesn't Change</h2>
+        <div class="rule"></div>
+        <ul>
+            <li><strong>The current organic CTA experiment continues unchanged.</strong> Paid traffic enters the same 3-variant rotation as organic, so we still get clean variant comparison data for both audiences.</li>
+            <li><strong>The form path to your inbox is unchanged.</strong> Inquiries still flow through formsubmit.co to george@jaysaircenter.com exactly as today.</li>
+            <li><strong>The website's look and feel doesn't change.</strong> No on-site work required for this experiment; only off-site ads.</li>
+            <li><strong>JAC's brand voice is unchanged.</strong> Ad copy stays in the same premium, understated register as the site itself.</li>
+        </ul>
+
+        <h2>Risks (And What We Do About Them)</h2>
+        <div class="rule"></div>
+        <table>
+            <thead>
+                <tr><th>Risk</th><th>Mitigation</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Meta serves ads to the wrong audience</td><td>Daily budget caps + review every 24h for first 3 days. Kill underperformers fast.</td></tr>
+                <tr><td>Aviation enthusiasts click but don't inquire</td><td>Income proxy + age filters added in Phase 1. If still bad, kill at $200 mark.</td></tr>
+                <tr><td>Inquiry volume overwhelms your response capacity</td><td>This proposal is the conversation about that. Daniel can throttle or pause anytime.</td></tr>
+                <tr><td>Ad gets disapproved by Meta</td><td>Submit ad 24h before launch. Backup creative ready.</td></tr>
+                <tr><td>We spend $500 and learn nothing useful</td><td>This is the actual worst case. Even then: $500 ≈ one half-day of FBO operations. Cheap learning.</td></tr>
+            </tbody>
+        </table>
+
+        <h2>What We Need From You</h2>
+        <div class="rule"></div>
+        <p>If you green-light this proposal, the only things asked of you are:</p>
+        <ul>
+            <li><strong>15 minutes</strong> to react to this brief — questions, concerns, things to change.</li>
+            <li><strong>~1 hour</strong> to set up a Meta Business Manager account for JAC and confirm a JAC Facebook Page exists (or create one). Daniel can walk you through this on a call.</li>
+            <li><strong>1-3 high-quality photos</strong> of the hangar exterior, ramp, or interior — anything we already have on the website is fine to reuse.</li>
+            <li><strong>Heads-up on inquiry response.</strong> Increased volume starting Day 3 of the experiment. We will brief you when it goes live.</li>
+        </ul>
+
+        <h2>Decision</h2>
+        <div class="rule"></div>
+        <div class="callout">
+            <strong>Recommendation:</strong> approve the $500 experiment as scoped above. The downside is bounded ($500 over 3 weeks). The upside is bounded only by the audience and creative we find. If we get to Day 21 with 0 inquiries, we've spent $500 to learn that this channel doesn't work for JAC. If we get to Day 21 with 20 inquiries, we have a repeatable acquisition channel.
+        </div>
+
+        <p style="margin-top: 24px;">
+            Once you've reviewed, let Daniel know whether to proceed. We'll book the kickoff for Day 1 setup tasks immediately after.
+        </p>
+
+        <footer>
+            <span>Confidential — Not for redistribution</span>
+            <span>H9 Partners</span>
+        </footer>
+
+    </div>
+</body>
+</html>

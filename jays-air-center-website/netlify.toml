@@ -1,0 +1,57 @@
+[build]
+  publish = "."
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  # Bundle the shared library (_lib/*) along with each function that imports it
+  included_files = ["netlify/functions/_lib/**"]
+
+# Daily JAC Analytics report — fires once a day at 23:00 UTC (= 6pm CDT / 5pm
+# CST, "end of business day" Central). Generates the H9-branded HTML report
+# and emails it to daniel@h9partners.com via Resend.
+# Manually triggerable too: https://jaysaircenter.com/api/daily-report?token=...
+[functions."daily-report"]
+  schedule = "0 23 * * *"
+
+# Rewrite /api/* to Netlify Functions so the analytics client can POST to a
+# clean URL (/api/track) instead of /.netlify/functions/track. status=200
+# makes this a server-side rewrite (no client-visible redirect).
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Password-protected live dashboard. Renders fresh on each request from
+# Firestore. Credentials in DASHBOARD_BASIC_AUTH env var. Daniel + share-with-George use case.
+[[redirects]]
+  from = "/dashboard"
+  to = "/.netlify/functions/dashboard"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # connect-src 'self' explicitly allows analytics.js to POST to /api/track.
+    # (default-src 'self' already implies it via CSP fallback; making it explicit
+    # documents intent and survives future CSP edits.)
+    Content-Security-Policy = "default-src 'self'; connect-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self'; frame-src https://www.google.com/maps/"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# Netlify
+.netlify/
+**/.netlify/
+
+# Build / generated artifacts
+**/css/output.css
+docs/daily-report-preview.html
+docs/dashboard.html
+
+# Env / secrets
+.env
+.env.*
+*.local
+
+# Logs
+*.log
+npm-debug.log*

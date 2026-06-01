@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jay's Valet — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --warm-white:#F8F6F3; --soft-gray:#E5E3DF; --pearl:#F5F5F0;
+    --charcoal:#1A1A1A; --deep-navy:#1B2838; --gold:#C9A55B; --champagne:#E8DCC4; --sky:#4A90A4;
+    --green:#3E8E5A; --red:#B4513E;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'DM Sans',sans-serif;background:#11161d;color:var(--charcoal);
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    padding:28px 16px 60px;
+  }
+
+  /* ---------- Demo chrome ---------- */
+  .demo-head{width:100%;max-width:920px;text-align:center;color:var(--warm-white);margin-bottom:22px}
+  .demo-head .kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);opacity:.9}
+  .demo-head h1{font-family:'Cormorant',serif;font-weight:500;font-size:38px;line-height:1.05;margin:6px 0 4px}
+  .demo-head p{font-size:13px;color:#9fb0c2;font-weight:300;max-width:560px;margin:0 auto}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:20px auto 0}
+  .seg{display:inline-flex;background:#1c2530;border:1px solid #2c3a49;border-radius:999px;padding:4px}
+  .seg button{font-family:'DM Sans';font-size:13px;font-weight:500;color:#8ea0b3;background:none;border:none;padding:8px 18px;border-radius:999px;cursor:pointer;transition:.2s;letter-spacing:.02em}
+  .seg button.active{background:var(--gold);color:var(--deep-navy)}
+  .toggle-wrap{display:inline-flex;align-items:center;gap:11px;background:#1c2530;border:1px solid #2c3a49;border-radius:999px;padding:8px 16px;color:#cdd8e2;font-size:13px;font-weight:500}
+  .switch{position:relative;width:46px;height:26px;flex:none}
+  .switch input{opacity:0;width:0;height:0}
+  .slider{position:absolute;inset:0;background:#39485a;border-radius:999px;transition:.25s;cursor:pointer}
+  .slider:before{content:'';position:absolute;height:20px;width:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s}
+  .switch input:checked + .slider{background:var(--gold)}
+  .switch input:checked + .slider:before{transform:translateX(20px)}
+  .ver-pill{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--gold)}
+
+  /* ---------- Phone ---------- */
+  .stage{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;align-items:flex-start;margin-top:30px}
+  .phone{
+    width:390px;height:800px;background:#000;border-radius:54px;padding:13px;
+    box-shadow:0 0 0 2px #2a2a2a, 0 30px 70px rgba(0,0,0,.6);position:relative;flex:none;
+  }
+  .screen{width:100%;height:100%;background:var(--warm-white);border-radius:42px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:128px;height:32px;background:#000;border-radius:0 0 20px 20px;z-index:50}
+  .statusbar{height:50px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:13px;font-weight:600;color:var(--charcoal)}
+  .statusbar .icons{letter-spacing:1px}
+
+  .app{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+  .view{position:absolute;inset:0;display:flex;flex-direction:column;overflow-y:auto;padding-bottom:20px;background:var(--warm-white);transition:opacity .25s;opacity:0;pointer-events:none}
+  .view.active{opacity:1;pointer-events:auto;position:relative}
+  .view::-webkit-scrollbar{width:0}
+  .view > *{flex-shrink:0}
+
+  /* App header */
+  .ahead{padding:14px 24px 6px;display:flex;align-items:center;justify-content:space-between}
+  .brand{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.22em;color:var(--deep-navy);text-transform:uppercase}
+  .brand b{color:var(--gold);font-weight:600}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--deep-navy);color:var(--champagne);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+  .h-title{font-family:'Cormorant',serif;font-size:34px;font-weight:600;color:var(--charcoal);padding:8px 24px 2px;line-height:1.05}
+  .h-sub{padding:0 24px 16px;color:#7a7a72;font-size:13.5px;font-weight:300}
+
+  /* Aircraft card */
+  .ac-card{margin:0 20px;background:var(--deep-navy);border-radius:22px;padding:22px;color:var(--warm-white);position:relative;overflow:hidden}
+  .ac-card .plane{position:absolute;right:-26px;top:-10px;font-size:120px;opacity:.07;transform:rotate(-18deg)}
+  .ac-tail{font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:.08em;color:#fff;font-weight:500}
+  .ac-type{font-size:13px;color:#9fb0c2;font-weight:300;margin-top:2px}
+  .ac-meta{display:flex;gap:22px;margin-top:18px}
+  .ac-meta div span{display:block;font-size:11px;color:#7e93a6;text-transform:uppercase;letter-spacing:.08em}
+  .ac-meta div b{font-size:15px;font-weight:500;color:#eef3f7}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;padding:5px 11px;border-radius:999px;letter-spacing:.03em}
+  .badge.hangared{background:rgba(201,165,91,.18);color:var(--gold)}
+  .badge.staged{background:rgba(62,142,90,.2);color:#7ed29a}
+  .badge.inprog{background:rgba(74,144,164,.22);color:#8fcadd}
+
+  /* Buttons */
+  .primary{display:flex;align-items:center;justify-content:center;gap:10px;width:auto;margin:18px 20px 0;background:var(--gold);color:var(--deep-navy);border:none;font-family:'DM Sans';font-size:16px;font-weight:600;letter-spacing:.02em;padding:17px;border-radius:16px;cursor:pointer;transition:.15s}
+  .primary:active{transform:scale(.985)}
+  .primary.dark{background:var(--deep-navy);color:var(--warm-white)}
+  .ghost{display:flex;align-items:center;justify-content:center;gap:9px;margin:11px 20px 0;background:transparent;color:var(--deep-navy);border:1.5px solid var(--soft-gray);font-family:'DM Sans';font-size:15px;font-weight:500;padding:15px;border-radius:16px;cursor:pointer}
+  .linkbtn{background:none;border:none;color:var(--sky);font-weight:500;font-size:14px;cursor:pointer;font-family:'DM Sans'}
+
+  .section-label{padding:24px 24px 8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#9a9a90}
+
+  /* Activity list */
+  .act{margin:0 20px;display:flex;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid var(--soft-gray)}
+  .act:last-child{border-bottom:none}
+  .act .dot{width:36px;height:36px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--pearl)}
+  .act .t{flex:1}
+  .act .t b{font-size:14.5px;font-weight:500;display:block;color:var(--charcoal)}
+  .act .t span{font-size:12.5px;color:#9a9a90;font-weight:300}
+  .act .when{font-size:12px;color:#b0b0a6;font-family:'JetBrains Mono',monospace}
+
+  /* Request screen */
+  .back{padding:14px 22px 4px;display:flex;align-items:center;gap:8px;color:var(--deep-navy);font-weight:500;font-size:15px;cursor:pointer}
+  .opt{margin:10px 20px 0;background:#fff;border:1.5px solid var(--soft-gray);border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:.15s}
+  .opt.sel{border-color:var(--gold);background:#fffdf8;box-shadow:0 0 0 3px rgba(201,165,91,.12)}
+  .opt .ico{font-size:22px}
+  .opt .body{flex:1}
+  .opt .body b{display:block;font-size:15px;font-weight:500}
+  .opt .body span{font-size:12.5px;color:#9a9a90;font-weight:300}
+  .opt .check{width:22px;height:22px;border-radius:50%;border:2px solid var(--soft-gray);flex:none}
+  .opt.sel .check{border-color:var(--gold);background:var(--gold);position:relative}
+  .opt.sel .check:after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;padding:10px 20px 0}
+  .chip{border:1.5px solid var(--soft-gray);background:#fff;border-radius:999px;padding:9px 15px;font-size:13px;font-weight:500;color:var(--charcoal);cursor:pointer;transition:.15s}
+  .chip.sel{background:var(--deep-navy);color:#fff;border-color:var(--deep-navy)}
+
+  /* Tracking */
+  .track-hero{margin:6px 20px 0;background:linear-gradient(160deg,#1B2838,#26384c);border-radius:22px;padding:24px;color:#fff;text-align:center;position:relative;overflow:hidden}
+  .track-hero .big{font-family:'Cormorant',serif;font-size:30px;font-weight:600;margin-top:4px}
+  .track-hero .small{font-size:13px;color:#9fb0c2;font-weight:300}
+  .track-hero .spot{display:inline-block;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.05em;background:rgba(201,165,91,.16);color:var(--gold);padding:8px 16px;border-radius:10px}
+  .steps{margin:22px 28px 0}
+  .step{display:flex;gap:15px;position:relative;padding-bottom:22px}
+  .step:last-child{padding-bottom:0}
+  .step .rail{position:absolute;left:13px;top:28px;bottom:0;width:2px;background:var(--soft-gray)}
+  .step:last-child .rail{display:none}
+  .step .node{width:28px;height:28px;border-radius:50%;flex:none;background:#fff;border:2px solid var(--soft-gray);display:flex;align-items:center;justify-content:center;font-size:13px;color:#b0b0a6;z-index:2}
+  .step .lbl b{display:block;font-size:15px;font-weight:500;color:#b0b0a6}
+  .step .lbl span{font-size:12.5px;color:#bcbcb2;font-weight:300}
+  .step.done .node{background:var(--green);border-color:var(--green);color:#fff}
+  .step.done .rail{background:var(--green)}
+  .step.done .lbl b{color:var(--charcoal)}
+  .step.active .node{background:var(--gold);border-color:var(--gold);color:#fff;animation:pulse 1.4s infinite}
+  .step.active .lbl b{color:var(--charcoal)}
+  .step.active .lbl span{color:#7a7a72}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,165,91,.5)}50%{box-shadow:0 0 0 7px rgba(201,165,91,0)}}
+  .crew-row{margin:22px 20px 0;display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--soft-gray);border-radius:16px;padding:14px}
+  .crew-row .pic{width:42px;height:42px;border-radius:50%;background:var(--champagne);color:var(--deep-navy);display:flex;align-items:center;justify-content:center;font-weight:600}
+  .crew-row .info{flex:1}
+  .crew-row .info b{font-size:14.5px;font-weight:500;display:block}
+  .crew-row .info span{font-size:12.5px;color:#9a9a90;font-weight:300}
+  .crew-row .call{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+
+  /* Ready / tip / done */
+  .center-pad{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+  .seal{width:96px;height:96px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:46px;margin-bottom:8px;animation:pop .4s ease}
+  .seal.gold{background:var(--gold)}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+  .center-pad h2{font-family:'Cormorant',serif;font-size:32px;font-weight:600;margin-top:18px;color:var(--charcoal)}
+  .center-pad p{color:#7a7a72;font-size:14px;font-weight:300;margin-top:8px;max-width:280px}
+  .tip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:100%;margin-top:8px}
+  .tip-amt{border:1.5px solid var(--soft-gray);background:#fff;border-radius:14px;padding:18px 0;font-family:'Cormorant',serif;font-size:24px;font-weight:600;color:var(--charcoal);cursor:pointer;transition:.15s}
+  .tip-amt.sel{border-color:var(--gold);background:#fffdf8;color:var(--deep-navy);box-shadow:0 0 0 3px rgba(201,165,91,.14)}
+  .tip-amt small{display:block;font-family:'DM Sans';font-size:10.5px;font-weight:400;color:#b0b0a6;letter-spacing:.04em}
+  .stars{display:flex;gap:8px;margin-top:6px}
+  .stars span{font-size:34px;color:var(--soft-gray);cursor:pointer;transition:.15s}
+  .stars span.lit{color:var(--gold)}
+
+  /* Tab bar */
+  .tabbar{flex:none;height:78px;background:rgba(248,246,243,.92);backdrop-filter:blur(10px);border-top:1px solid var(--soft-gray);display:flex;padding-bottom:14px}
+  .tabbar button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#b0b0a6;font-size:10.5px;font-weight:500;cursor:pointer;font-family:'DM Sans'}
+  .tabbar button .ti{font-size:21px}
+  .tabbar button.active{color:var(--deep-navy)}
+
+  /* Crew screen */
+  .crew-card{margin:14px 20px 0;background:#fff;border:1px solid var(--soft-gray);border-radius:18px;padding:18px}
+  .crew-card .top{display:flex;justify-content:space-between;align-items:flex-start}
+  .crew-card .tail{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--deep-navy)}
+  .crew-card .req{font-size:12.5px;color:#9a9a90;font-weight:300;margin-top:3px}
+  .crew-card .det{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  .crew-card .det .tag{font-size:12px;background:var(--pearl);padding:6px 11px;border-radius:8px;color:#5a5a52;font-weight:500}
+  .crew-act{display:flex;gap:10px;margin-top:16px}
+  .crew-act button{flex:1;border:none;border-radius:12px;padding:13px;font-family:'DM Sans';font-size:14px;font-weight:600;cursor:pointer}
+  .crew-act .adv{background:var(--gold);color:var(--deep-navy)}
+  .crew-act .sec{background:var(--pearl);color:var(--deep-navy)}
+
+  /* Notification banner */
+  .notif{position:absolute;top:58px;left:14px;right:14px;background:rgba(28,37,48,.97);backdrop-filter:blur(8px);color:#fff;border-radius:18px;padding:14px 16px;display:flex;gap:12px;align-items:center;z-index:80;transform:translateY(-160%);transition:transform .45s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .notif.show{transform:translateY(0)}
+  .notif .nico{width:36px;height:36px;border-radius:9px;background:var(--gold);color:var(--deep-navy);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  .notif .ntx b{display:block;font-size:13.5px;font-weight:600}
+  .notif .ntx span{font-size:12.5px;color:#aebccb;font-weight:300}
+
+  .legend{color:#6c7d8f;font-size:12px;max-width:300px;margin-top:6px;font-weight:300;line-height:1.6}
+  .legend b{color:#cdd8e2;font-weight:500}
+  @media(max-width:520px){.phone{transform:scale(.86);transform-origin:top center;margin-bottom:-90px}}
+</style>
+</head>
+<body>
+
+<div class="demo-head">
+  <div class="kicker">Jay's Air Center · KSNA</div>
+  <h1>Jay's Valet</h1>
+  <p>Summon your aircraft like a Tesla — tap once, the line crew stages it on the ramp, and you're notified the moment it's ready. Interactive concept prototype.</p>
+  <div class="controls">
+    <div class="seg" id="modeSeg">
+      <button data-mode="owner" class="active">Owner app</button>
+      <button data-mode="crew">Line crew</button>
+    </div>
+    <label class="toggle-wrap">
+      Electronic tipping
+      <span class="switch"><input type="checkbox" id="tipToggle" checked><span class="slider"></span></span>
+      <span class="ver-pill" id="verPill">VERSION A</span>
+    </label>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="statusbar">
+        <span id="clock">9:41</span>
+        <span class="icons">●●● ▾ ▮</span>
+      </div>
+
+      <div class="notif" id="notif">
+        <div class="nico" id="notifIco">✈</div>
+        <div class="ntx"><b id="notifTitle">Jay's Valet</b><span id="notifBody">Notification</span></div>
+      </div>
+
+      <!-- ============ OWNER APP ============ -->
+      <div class="app" id="ownerApp">
+
+        <!-- HOME -->
+        <div class="view active" data-view="home">
+          <div class="ahead">
+            <div class="brand">JAY'S <b>VALET</b></div>
+            <div class="avatar">GM</div>
+          </div>
+          <div class="h-title">Good morning, George.</div>
+          <div class="h-sub">Your aircraft is hangared and ready when you are.</div>
+
+          <div class="ac-card">
+            <div class="plane">✈</div>
+            <span class="badge hangared" id="acBadge">● In hangar</span>
+            <div class="ac-tail" style="margin-top:12px">N559JC</div>
+            <div class="ac-type">Cirrus SR22T G6</div>
+            <div class="ac-meta">
+              <div><span>Home</span><b>Row B · 14</b></div>
+              <div><span>Fuel</span><b>1/2 tank</b></div>
+              <div><span>Status</span><b id="acStatusTxt">Hangared</b></div>
+            </div>
+          </div>
+
+          <button class="primary" onclick="startRequest('stage')">✈&nbsp; Stage aircraft for departure</button>
+          <button class="ghost" onclick="startRequest('return')">⤵&nbsp; Return aircraft to hangar</button>
+
+          <div class="section-label">Recent activity</div>
+          <div class="act"><div class="dot">✈</div><div class="t"><b>Staged on ramp</b><span>Row A · Spot 7 · Marcus R.</span></div><div class="when">May 28</div></div>
+          <div class="act"><div class="dot">⛽</div><div class="t"><b>Fueled — 38 gal Jet A</b><span>Top-off before staging</span></div><div class="when">May 28</div></div>
+          <div class="act"><div class="dot">⤵</div><div class="t"><b>Returned to hangar</b><span>Row B · Spot 14 · Diego S.</span></div><div class="when">May 24</div></div>
+        </div>
+
+        <!-- REQUEST -->
+        <div class="view" data-view="request">
+          <div class="back" onclick="showView('home')">‹ Back</div>
+          <div class="h-title" id="reqTitle">Stage aircraft</div>
+          <div class="h-sub" id="reqSub">N559JC · Cirrus SR22T</div>
+
+          <div class="section-label">When</div>
+          <div class="opt sel" data-group="when" data-val="now" onclick="pickOpt(this)">
+            <div class="ico">⚡</div>
+            <div class="body"><b>Stage now</b><span>Crew begins immediately · ~18 min</span></div>
+            <div class="check"></div>
+          </div>
+          <div class="opt" data-group="when" data-val="sched" onclick="pickOpt(this)">
+            <div class="ico">🕑</div>
+            <div class="body"><b>Schedule departure</b><span>Ready by a set time</span></div>
+            <div class="check"></div>
+          </div>
+          <div class="chips" id="timeChips" style="display:none">
+            <div class="chip" onclick="pickChip(this)">8:00 AM</div>
+            <div class="chip sel" onclick="pickChip(this)">9:00 AM</div>
+            <div class="chip" onclick="pickChip(this)">10:30 AM</div>
+            <div class="chip" onclick="pickChip(this)">1:00 PM</div>
+          </div>
+
+          <div class="section-label">Fuel</div>
+          <div class="chips">
+            <div class="chip sel" onclick="toggleChip(this)">Top off Jet A</div>
+            <div class="chip" onclick="toggleChip(this)">Set quantity</div>
+            <div class="chip" onclick="toggleChip(this)">No fuel</div>
+          </div>
+
+          <div class="section-label">Services</div>
+          <div class="chips">
+            <div class="chip" onclick="toggleChip(this)">Lav service</div>
+            <div class="chip" onclick="toggleChip(this)">Potable water</div>
+            <div class="chip" onclick="toggleChip(this)">Ground power</div>
+            <div class="chip" onclick="toggleChip(this)">Rental car</div>
+            <div class="chip" onclick="toggleChip(this)">Catering</div>
+          </div>
+
+          <button class="primary dark" style="margin-top:26px" onclick="confirmRequest()">Confirm request</button>
+        </div>
+
+        <!-- TRACKING -->
+        <div class="view" data-view="track">
+          <div class="ahead">
+            <div class="brand">JAY'S <b>VALET</b></div>
+            <span class="badge inprog" id="trackBadge">● In progress</span>
+          </div>
+          <div class="track-hero">
+            <div class="small" id="trackSmall">Estimated ready</div>
+            <div class="big" id="trackBig">9:18 AM</div>
+            <div class="spot" id="trackSpot">Staging at Row A · Spot 7</div>
+          </div>
+
+          <div class="steps" id="steps">
+            <div class="step done"><div class="node">✓</div><div class="rail"></div><div class="lbl"><b>Request received</b><span>Jay's line crew notified</span></div></div>
+            <div class="step active"><div class="node">2</div><div class="rail"></div><div class="lbl"><b>Crew assigned</b><span>Marcus is heading to your hangar</span></div></div>
+            <div class="step"><div class="node">3</div><div class="rail"></div><div class="lbl"><b>Towing to ramp</b><span>Aircraft moving from Row B</span></div></div>
+            <div class="step"><div class="node">4</div><div class="rail"></div><div class="lbl"><b>Fueling &amp; services</b><span>Top-off Jet A</span></div></div>
+            <div class="step"><div class="node">5</div><div class="rail"></div><div class="lbl"><b>Staged &amp; ready</b><span>Ready for departure</span></div></div>
+          </div>
+
+          <div class="crew-row">
+            <div class="pic">MR</div>
+            <div class="info"><b>Marcus Reyes</b><span>Line technician · 6 yrs at Jay's</span></div>
+            <div class="call">✆</div>
+          </div>
+          <button class="ghost" style="margin-top:14px" onclick="demoAdvance()">▸ Simulate next crew update</button>
+        </div>
+
+        <!-- READY -->
+        <div class="view" data-view="ready">
+          <div class="center-pad">
+            <div class="seal">✈</div>
+            <h2>Staged &amp; ready</h2>
+            <p>N559JC is fueled and waiting at <b id="readySpot">Row A · Spot 7</b>. Safe flight, George.</p>
+            <div class="track-hero" style="margin-top:26px;width:100%">
+              <div class="small">Staged at</div>
+              <div class="big" style="font-size:24px">Row A · Spot 7</div>
+              <div class="spot">Marcus R. · 9:16 AM</div>
+            </div>
+            <button class="primary" style="width:100%;margin:26px 0 0" onclick="finishFlow()" id="readyBtn">Continue</button>
+          </div>
+        </div>
+
+        <!-- TIP (Version A) -->
+        <div class="view" data-view="tip">
+          <div class="back" onclick="showView('ready')">‹ Back</div>
+          <div class="center-pad" style="justify-content:flex-start;padding-top:14px">
+            <div class="seal gold">♥</div>
+            <h2>Thank your crew</h2>
+            <p>Marcus staged your aircraft. 100% of tips go directly to the line crew.</p>
+            <div class="tip-grid">
+              <div class="tip-amt" onclick="pickTip(this)">$10</div>
+              <div class="tip-amt sel" onclick="pickTip(this)">$20</div>
+              <div class="tip-amt" onclick="pickTip(this)">$40</div>
+            </div>
+            <div class="tip-grid" style="grid-template-columns:1fr 1fr;margin-top:11px">
+              <div class="tip-amt" onclick="pickTip(this)">$60</div>
+              <div class="tip-amt" onclick="pickTip(this)">Custom<small>Enter amount</small></div>
+            </div>
+            <button class="primary" style="width:100%;margin-top:20px" onclick="sendTip()">Send $20 to Marcus</button>
+            <button class="linkbtn" style="margin-top:16px" onclick="finishNoTip()">Not this time</button>
+          </div>
+        </div>
+
+        <!-- DONE -->
+        <div class="view" data-view="done">
+          <div class="center-pad">
+            <div class="seal" id="doneSeal">✓</div>
+            <h2 id="doneTitle">All set</h2>
+            <p id="doneMsg">Your request is complete. We'll see you on the ramp.</p>
+            <div class="stars" id="ratingStars" style="display:none">
+              <span onclick="rate(this,1)">★</span><span onclick="rate(this,2)">★</span><span onclick="rate(this,3)">★</span><span onclick="rate(this,4)">★</span><span onclick="rate(this,5)">★</span>
+            </div>
+            <button class="primary" style="width:100%;margin-top:28px" onclick="showView('home');setBadge('hangared')">Back to home</button>
+          </div>
+        </div>
+
+        <!-- ACTIVITY TAB -->
+        <div class="view" data-view="activity">
+          <div class="h-title">Activity</div>
+          <div class="h-sub">Every staging and return on N559JC.</div>
+          <div class="section-label">This week</div>
+          <div class="act"><div class="dot">✈</div><div class="t"><b>Staged on ramp</b><span>Row A · Spot 7 · Marcus R. · tipped $20</span></div><div class="when">May 28</div></div>
+          <div class="act"><div class="dot">⛽</div><div class="t"><b>Fueled — 38 gal Jet A</b><span>$312.40 · billed to account</span></div><div class="when">May 28</div></div>
+          <div class="act"><div class="dot">⤵</div><div class="t"><b>Returned to hangar</b><span>Row B · Spot 14 · Diego S.</span></div><div class="when">May 24</div></div>
+          <div class="section-label">Earlier</div>
+          <div class="act"><div class="dot">✈</div><div class="t"><b>Staged on ramp</b><span>Row A · Spot 3 · Marcus R.</span></div><div class="when">May 19</div></div>
+          <div class="act"><div class="dot">🚗</div><div class="t"><b>Rental car delivered</b><span>Ramp-side · Enterprise</span></div><div class="when">May 19</div></div>
+        </div>
+
+        <div class="tabbar" id="ownerTabs">
+          <button class="active" onclick="tabTo('home',this)"><span class="ti">⌂</span>Home</button>
+          <button onclick="tabTo('activity',this)"><span class="ti">≣</span>Activity</button>
+          <button onclick="alert('Profile, aircraft, billing — out of scope for this prototype.')"><span class="ti">☰</span>More</button>
+        </div>
+      </div><!-- /ownerApp -->
+
+      <!-- ============ CREW APP ============ -->
+      <div class="app" id="crewApp" style="display:none">
+        <div class="view active" data-view="crewqueue" style="opacity:1;pointer-events:auto;position:relative">
+          <div class="ahead">
+            <div class="brand">JAY'S <b>VALET</b> · CREW</div>
+            <div class="avatar">MR</div>
+          </div>
+          <div class="h-title">Line queue</div>
+          <div class="h-sub">Marcus Reyes · on shift · 3 open requests</div>
+
+          <div class="crew-card" id="liveJob">
+            <div class="top">
+              <div>
+                <div class="tail">N559JC</div>
+                <div class="req" id="crewReqLine">Stage now · George M. · 2 min ago</div>
+              </div>
+              <span class="badge inprog" id="crewStatusBadge">● New</span>
+            </div>
+            <div class="det">
+              <span class="tag">From Row B · 14</span>
+              <span class="tag">Top off Jet A</span>
+              <span class="tag">Lav service</span>
+              <span class="tag">→ Ramp Row A · 7</span>
+            </div>
+            <div class="crew-act">
+              <button class="sec" onclick="alert('Reassign / decline — out of scope for prototype.')">Reassign</button>
+              <button class="adv" id="crewAdvBtn" onclick="crewAdvance()">Accept request</button>
+            </div>
+          </div>
+
+          <div class="crew-card" style="opacity:.62">
+            <div class="top"><div><div class="tail">N72KT</div><div class="req">Scheduled 10:30 · Hawker 400</div></div><span class="badge hangared">● Queued</span></div>
+            <div class="det"><span class="tag">From Row D · 2</span><span class="tag">No fuel</span><span class="tag">Ground power</span></div>
+          </div>
+          <div class="crew-card" style="opacity:.62">
+            <div class="top"><div><div class="tail">N88RV</div><div class="req">Return to hangar · King Air</div></div><span class="badge hangared">● Queued</span></div>
+            <div class="det"><span class="tag">Ramp Row A · 11</span><span class="tag">→ Row C · 5</span></div>
+          </div>
+
+          <div class="legend" style="margin:24px 20px 0;max-width:none">
+            <b>Demo:</b> Advancing this job here drives the live status and push
+            notifications on the owner's phone. Switch to <b>Owner app</b> after each step to see it.
+          </div>
+        </div>
+      </div><!-- /crewApp -->
+
+    </div>
+  </div>
+
+  <div class="legend" style="align-self:center">
+    <b>How to demo</b><br>
+    1 · In the Owner app, tap <b>Stage aircraft</b> and confirm.<br>
+    2 · Watch the live tracker, or tap <b>Simulate next crew update</b>.<br>
+    3 · At <b>Staged &amp; ready</b>, the flow ends in a <b>tip</b> screen (Version A)
+    or a <b>rating</b> (Version B) depending on the toggle above.<br>
+    4 · Switch to the <b>Line crew</b> view to see the other side of the same request.
+  </div>
+</div>
+
+<script>
+  /* ---------- state ---------- */
+  let tipping = true;
+  let mode = 'owner';
+  let stepIndex = 1;            // index of current active step (0-based) in tracking
+  let reqType = 'stage';
+  const stepEls = () => document.querySelectorAll('#steps .step');
+
+  /* ---------- live clock ---------- */
+  function tick(){
+    const d=new Date();let h=d.getHours(),m=d.getMinutes();const ap=h>=12?'':'';
+    h=h%12||12;document.getElementById('clock').textContent=h+':'+String(m).padStart(2,'0');
+  }
+  setInterval(tick,10000);tick();
+
+  /* ---------- mode + version toggles ---------- */
+  document.querySelectorAll('#modeSeg button').forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');mode=b.dataset.mode;
+      document.getElementById('ownerApp').style.display = mode==='owner'?'flex':'none';
+      document.getElementById('crewApp').style.display = mode==='crew'?'flex':'none';
+    };
+  });
+  const tipToggle=document.getElementById('tipToggle');
+  tipToggle.onchange=()=>{
+    tipping=tipToggle.checked;
+    document.getElementById('verPill').textContent= tipping?'VERSION A':'VERSION B';
+  };
+
+  /* ---------- view switching (owner) ---------- */
+  function showView(name){
+    document.querySelectorAll('#ownerApp .view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
+    document.querySelector('#ownerApp .app, #ownerApp')?.scrollTo?.(0,0);
+  }
+  function tabTo(name,btn){
+    showView(name);
+    document.querySelectorAll('#ownerTabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  /* ---------- request flow ---------- */
+  function startRequest(type){
+    reqType=type;
+    document.getElementById('reqTitle').textContent = type==='stage'?'Stage aircraft':'Return to hangar';
+    document.getElementById('reqSub').textContent = type==='stage'
+      ? 'N559JC · Cirrus SR22T · → ramp'
+      : 'N559JC · Cirrus SR22T · → Row B · 14';
+    showView('request');
+  }
+  function pickOpt(el){
+    document.querySelectorAll('[data-group="when"]').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    document.getElementById('timeChips').style.display = el.dataset.val==='sched'?'flex':'none';
+  }
+  function pickChip(el){
+    el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));
+    el.classList.add('sel');
+  }
+  function toggleChip(el){
+    // fuel group is mutually exclusive (first chips row), services multi
+    const row=el.parentElement;
+    if(row.children.length===3 && ['Top off Jet A','Set quantity','No fuel'].includes(el.textContent.trim())){
+      row.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');
+    }else{ el.classList.toggle('sel'); }
+  }
+
+  function confirmRequest(){
+    setBadge('inprog');
+    document.getElementById('acStatusTxt').textContent = reqType==='stage'?'Being staged':'Returning';
+    resetSteps();
+    showView('track');
+    pushNotif('✓','Request received','Your request is with the line crew');
+    document.getElementById('trackBig').textContent = reqType==='stage'?'9:18 AM':'—';
+    document.getElementById('trackSpot').textContent = reqType==='stage'?'Staging at Row A · Spot 7':'Returning to Row B · Spot 14';
+    // auto-advance after a beat
+    setTimeout(()=>demoAdvance(),1800);
+  }
+
+  /* ---------- tracking progression ---------- */
+  const stepNotifs=[
+    null,
+    ['🧑‍✈️','Crew assigned','Marcus is heading to your hangar'],
+    ['🚜','Towing to ramp','Your aircraft is on the move'],
+    ['⛽','Fueling & services','Top-off Jet A in progress'],
+    ['✈','Staged & ready','N559JC is ready at Row A · Spot 7']
+  ];
+  function resetSteps(){
+    stepIndex=1;
+    stepEls().forEach((s,i)=>{
+      s.classList.remove('done','active');
+      if(i===0)s.classList.add('done');
+      if(i===1)s.classList.add('active');
+    });
+    document.getElementById('trackBadge').textContent='● In progress';
+    document.getElementById('trackBadge').className='badge inprog';
+  }
+  function demoAdvance(){
+    const steps=stepEls();
+    if(stepIndex>=steps.length-1){ arriveReady(); return; }
+    // complete current
+    steps[stepIndex].classList.remove('active');
+    steps[stepIndex].classList.add('done');
+    stepIndex++;
+    steps[stepIndex].classList.add('active');
+    const n=stepNotifs[stepIndex];
+    if(n)pushNotif(n[0],n[1],n[2]);
+    if(stepIndex>=steps.length-1) setTimeout(arriveReady,1400);
+  }
+  function arriveReady(){
+    const steps=stepEls();
+    steps.forEach(s=>{s.classList.remove('active');s.classList.add('done');});
+    document.getElementById('trackBadge').textContent='● Ready';
+    document.getElementById('trackBadge').className='badge staged';
+    setBadge('staged');
+    document.getElementById('acStatusTxt').textContent = reqType==='stage'?'Staged · Row A·7':'Hangared';
+    setTimeout(()=>{ showView('ready'); }, 600);
+  }
+
+  /* ---------- ready → tip / rating ---------- */
+  function finishFlow(){
+    if(tipping){ showView('tip'); }
+    else{ showRating(); }
+  }
+  function showRating(){
+    document.getElementById('doneSeal').textContent='✈';
+    document.getElementById('doneSeal').className='seal';
+    document.getElementById('doneTitle').textContent='How was your service?';
+    document.getElementById('doneMsg').textContent='Your feedback helps the line crew. (Version B — no tipping.)';
+    document.getElementById('ratingStars').style.display='flex';
+    showView('done');
+  }
+  function finishNoTip(){
+    document.getElementById('doneSeal').textContent='✓';
+    document.getElementById('doneSeal').className='seal';
+    document.getElementById('doneTitle').textContent='All set';
+    document.getElementById('doneMsg').textContent='Your request is complete. Safe flight, George.';
+    document.getElementById('ratingStars').style.display='none';
+    showView('done');
+  }
+
+  /* ---------- tip ---------- */
+  let tipAmt=20;
+  function pickTip(el){
+    document.querySelectorAll('.tip-amt').forEach(t=>t.classList.remove('sel'));
+    el.classList.add('sel');
+    const txt=el.textContent.replace(/[^0-9]/g,'');
+    tipAmt=txt?parseInt(txt):0;
+    const btn=document.querySelector('[data-view="tip"] .primary');
+    btn.textContent = tipAmt? 'Send $'+tipAmt+' to Marcus' : 'Enter a custom amount';
+  }
+  function sendTip(){
+    pushNotif('♥','Tip sent','$'+tipAmt+' delivered to Marcus. Thank you!');
+    document.getElementById('doneSeal').textContent='♥';
+    document.getElementById('doneSeal').className='seal gold';
+    document.getElementById('doneTitle').textContent='Thank you!';
+    document.getElementById('doneMsg').textContent='$'+tipAmt+' sent to Marcus. (Version A — with tipping.)';
+    document.getElementById('ratingStars').style.display='none';
+    showView('done');
+  }
+  function rate(el,n){
+    const stars=el.parentElement.querySelectorAll('span');
+    stars.forEach((s,i)=>s.classList.toggle('lit',i<n));
+  }
+
+  /* ---------- aircraft badge ---------- */
+  function setBadge(kind){
+    const b=document.getElementById('acBadge');
+    if(kind==='hangared'){b.className='badge hangared';b.textContent='● In hangar';document.getElementById('acStatusTxt').textContent='Hangared';}
+    if(kind==='inprog'){b.className='badge inprog';b.textContent='● In progress';}
+    if(kind==='staged'){b.className='badge staged';b.textContent='● Staged & ready';}
+  }
+
+  /* ---------- crew side ---------- */
+  const crewSteps=[
+    ['Accept request','● Accepted','status updated · owner notified'],
+    ['Start tow','● Towing','towing from Row B'],
+    ['Begin fueling','● Fueling','top-off Jet A'],
+    ['Mark staged & ready','● Staging','positioning on ramp'],
+    ['Done','● Complete','staged at Row A · 7']
+  ];
+  let crewIdx=0;
+  function crewAdvance(){
+    const badge=document.getElementById('crewStatusBadge');
+    const btn=document.getElementById('crewAdvBtn');
+    const cur=crewSteps[crewIdx];
+    badge.textContent=cur[1];
+    document.getElementById('crewReqLine').textContent='N559JC · '+cur[2];
+    // mirror onto owner tracking + notification
+    if(crewIdx>0) demoAdvance();
+    crewIdx++;
+    if(crewIdx>=crewSteps.length){
+      badge.className='badge staged';
+      btn.textContent='Job complete ✓';btn.disabled=true;btn.style.opacity=.6;
+    }else{
+      btn.textContent=crewSteps[crewIdx][0];
+    }
+  }
+
+  /* ---------- notification banner ---------- */
+  let notifTimer;
+  function pushNotif(ico,title,body){
+    const n=document.getElementById('notif');
+    document.getElementById('notifIco').textContent=ico;
+    document.getElementById('notifTitle').textContent=title;
+    document.getElementById('notifBody').textContent=body;
+    n.classList.add('show');
+    clearTimeout(notifTimer);
+    notifTimer=setTimeout(()=>n.classList.remove('show'),3200);
+  }
+</script>
+</body>
+</html>

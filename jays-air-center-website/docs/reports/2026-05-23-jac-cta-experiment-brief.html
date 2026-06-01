@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Jay's Air Center — Waitlist CTA Experiment</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800&family=Geologica:wght@700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --orange: #FF8C00;
+            --orange-glow: rgba(255, 140, 0, 0.35);
+            --orange-soft: rgba(255, 140, 0, 0.08);
+            --navy: #142338;
+            --navy-deep: #0c1626;
+            --navy-soft: #1a2c47;
+            --cream: #FAF8F4;
+            --text-black: #1E1E1E;
+            --text-muted: #5a6573;
+            --rule: rgba(20, 35, 60, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: var(--cream);
+            color: var(--text-black);
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .doc {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 56px 48px 48px;
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.55rem;
+            background: var(--navy);
+            border: 1.5px solid var(--orange);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--orange);
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: 0.04em;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .wordmark {
+            font-family: 'Geologica', 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--navy);
+        }
+        .header-meta {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* EYEBROW */
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--orange);
+            margin-bottom: 12px;
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--orange);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--orange-glow);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.55; transform: scale(0.88); }
+        }
+
+        /* TITLE */
+        h1 {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 44px;
+            letter-spacing: 0.01em;
+            line-height: 1.05;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 0 0 14px;
+        }
+        .subtitle {
+            font-size: 17px;
+            color: var(--text-muted);
+            margin: 0 0 36px;
+            max-width: 600px;
+        }
+
+        /* TLDR CARD */
+        .tldr {
+            background: var(--navy);
+            color: var(--cream);
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin: 0 0 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .tldr::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--orange-soft) 1px, transparent 1px),
+                linear-gradient(90deg, var(--orange-soft) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .tldr-inner { position: relative; }
+        .tldr-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--orange);
+            margin: 0 0 10px;
+        }
+        .tldr-body {
+            font-size: 17px;
+            line-height: 1.5;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* SECTION HEADINGS */
+        h2 {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: 0.02em;
+            line-height: 1.1;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 44px 0 8px;
+        }
+        h2 + .rule {
+            width: 56px;
+            height: 3px;
+            background: var(--orange);
+            box-shadow: 0 0 12px var(--orange-glow);
+            margin: 0 0 18px;
+            border-radius: 1.5px;
+        }
+
+        p { margin: 0 0 14px; }
+        p:last-child { margin-bottom: 0; }
+
+        /* VARIANT TABLE */
+        .variants {
+            margin: 18px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .variant {
+            display: grid;
+            grid-template-columns: 28px 1fr;
+            gap: 18px;
+            padding: 18px 0;
+            border-top: 1px solid var(--rule);
+        }
+        .variant:last-child { border-bottom: 1px solid var(--rule); }
+        .variant-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--orange);
+            padding-top: 2px;
+        }
+        .variant-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--navy);
+            margin: 0 0 6px;
+        }
+        .variant-label .badge {
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            vertical-align: 2px;
+        }
+        .badge-control {
+            background: var(--rule);
+            color: var(--text-muted);
+        }
+        .badge-test {
+            background: var(--orange-soft);
+            color: var(--orange);
+        }
+        .variant-rationale {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* FUNNEL */
+        .funnel {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin: 16px 0 0;
+        }
+        .funnel-step {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0;
+        }
+        .funnel-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--orange);
+            width: 28px;
+            flex-shrink: 0;
+        }
+        .funnel-step strong {
+            color: var(--navy);
+            font-weight: 600;
+        }
+        .funnel-arrow {
+            color: var(--rule);
+            margin: 0 0 0 14px;
+            font-size: 12px;
+            letter-spacing: 4px;
+        }
+
+        /* TIMELINE */
+        .timeline {
+            margin: 16px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 24px;
+            padding: 16px 0;
+            border-top: 1px solid var(--rule);
+        }
+        .timeline-item:last-child { border-bottom: 1px solid var(--rule); }
+        .timeline-when {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--orange);
+            line-height: 1.5;
+        }
+        .timeline-what strong {
+            color: var(--navy);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .timeline-what span {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* DECISION CALLOUT */
+        .decision {
+            background: var(--cream);
+            border: 1px solid var(--rule);
+            border-left: 3px solid var(--orange);
+            border-radius: 4px;
+            padding: 24px 28px;
+            margin: 18px 0 0;
+        }
+        .decision h3 {
+            font-family: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--navy);
+            margin: 0 0 12px;
+        }
+        .decision ul {
+            margin: 0;
+            padding: 0 0 0 20px;
+            color: var(--text-muted);
+        }
+        .decision li {
+            margin-bottom: 8px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .decision li strong {
+            color: var(--navy);
+            font-weight: 600;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: 64px;
+            padding-top: 24px;
+            border-top: 1px solid var(--rule);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* LINKS */
+        a {
+            color: var(--navy);
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-decoration-color: var(--orange);
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 3px;
+        }
+        a:hover { color: var(--orange); }
+
+        @media (max-width: 600px) {
+            .doc { padding: 32px 24px 32px; }
+            h1 { font-size: 32px; }
+            .tldr { padding: 22px 24px; }
+            .timeline-item { grid-template-columns: 1fr; gap: 4px; }
+            .header-meta { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="doc">
+
+        <header>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="logo-mark">H9</div>
+                <div class="wordmark">H9 Partners</div>
+            </div>
+            <div class="header-meta">
+                For George Sumner<br>
+                2026-05-23
+            </div>
+        </header>
+
+        <div class="eyebrow">
+            <div class="pulse-dot"></div>
+            <span>Jay's Air Center · Website Optimization</span>
+        </div>
+
+        <h1>Waitlist CTA Experiment</h1>
+        <p class="subtitle">
+            We're running a short, low-cost experiment on the jaysaircenter.com call-to-action to see which language drives more hangar inquiries. Here's what changed, what we're testing, and what happens in two weeks.
+        </p>
+
+        <div class="tldr">
+            <div class="tldr-inner">
+                <p class="tldr-label">The Short Version</p>
+                <p class="tldr-body">
+                    The "Join Waitlist" button has been quietly replaced with a three-variant test. Each visitor sees one of three labels, picked randomly and held consistent for that person. We measure who clicks and who completes the form. On June 6, we keep the winner.
+                </p>
+            </div>
+        </div>
+
+        <h2>What We Changed</h2>
+        <div class="rule"></div>
+        <p>
+            Last week we added a privacy-respecting analytics layer to the website. It tracks the conversion funnel — visit, scroll, click, form started, form completed — without using cookies and without collecting any personal data. The data lives in our own infrastructure, not a third-party vendor.
+        </p>
+        <p>
+            On top of that, the single "Join Waitlist" button was replaced with a randomized three-variant test. The form behavior, your inbox, and everything downstream is unchanged.
+        </p>
+
+        <h2>Why Test Instead of Just Swapping the Button</h2>
+        <div class="rule"></div>
+        <p>
+            "Join Waitlist" reads as passive — visitors don't actually know what they're joining or what they get in exchange. We could replace it with what we think sounds better, but the audience for a hangar at SNA — high-net-worth aircraft owners — has their own intuitions about luxury-brand language, and we'd be guessing.
+        </p>
+        <p>
+            Two to four weeks of real data is essentially free and tells us the actual answer instead of our best guess.
+        </p>
+
+        <h2>The Three Labels in Rotation</h2>
+        <div class="rule"></div>
+        <ul class="variants">
+            <li class="variant">
+                <span class="variant-num">01</span>
+                <div>
+                    <p class="variant-label">Join Waitlist <span class="badge badge-control">Control</span></p>
+                    <p class="variant-rationale">The current label. Acts as the baseline so we can measure relative lift, not just absolute clicks.</p>
+                </div>
+            </li>
+            <li class="variant">
+                <span class="variant-num">02</span>
+                <div>
+                    <p class="variant-label">Reserve Your Hangar <span class="badge badge-test">Variant A</span></p>
+                    <p class="variant-rationale">Possession framing ("your"), specific to the headline service, implied scarcity. The pattern Tesla and NetJets use on their reservation pages.</p>
+                </div>
+            </li>
+            <li class="variant">
+                <span class="variant-num">03</span>
+                <div>
+                    <p class="variant-label">Inquire About Availability <span class="badge badge-test">Variant B</span></p>
+                    <p class="variant-rationale">Luxury-brand register — the language Aman, Ferrari, and Rolex use. Signals a dialogue rather than a transaction, which tends to lower perceived friction at the top of the funnel.</p>
+                </div>
+            </li>
+        </ul>
+
+        <h2>What We're Measuring</h2>
+        <div class="rule"></div>
+        <p>The conversion funnel, end to end:</p>
+        <div class="funnel">
+            <div class="funnel-step"><span class="funnel-num">01</span><div><strong>Visit</strong> — visitor lands on the page</div></div>
+            <div class="funnel-step"><span class="funnel-num">02</span><div><strong>Engagement</strong> — scrolls past hangars / FBO / offices / tie-downs</div></div>
+            <div class="funnel-step"><span class="funnel-num">03</span><div><strong>CTA click</strong> — taps the call-to-action</div></div>
+            <div class="funnel-step"><span class="funnel-num">04</span><div><strong>Form started</strong> — clicks into a form field</div></div>
+            <div class="funnel-step"><span class="funnel-num">05</span><div><strong>Form completed</strong> — your inbox gets the inquiry</div></div>
+        </div>
+
+        <h2>Roadmap</h2>
+        <div class="rule"></div>
+        <ul class="timeline">
+            <li class="timeline-item">
+                <div class="timeline-when">May 23 – May 30<br><span style="color: var(--text-muted); font-family: Inter; font-weight: 400; font-size: 12px; letter-spacing: normal; text-transform: none;">Week 1</span></div>
+                <div class="timeline-what">
+                    <strong>Baseline data collection</strong>
+                    <span>Three variants live in equal rotation. We watch for technical issues but make no decisions. No action needed on your end — inquiries arrive in your inbox exactly as before.</span>
+                </div>
+            </li>
+            <li class="timeline-item">
+                <div class="timeline-when">May 30 – June 6<br><span style="color: var(--text-muted); font-family: Inter; font-weight: 400; font-size: 12px; letter-spacing: normal; text-transform: none;">Week 2</span></div>
+                <div class="timeline-what">
+                    <strong>Variants accumulate completions</strong>
+                    <span>By the end of this week we should have enough form-completion data per variant to begin reading signal. The data set continues to grow.</span>
+                </div>
+            </li>
+            <li class="timeline-item">
+                <div class="timeline-when">June 6<br><span style="color: var(--text-muted); font-family: Inter; font-weight: 400; font-size: 12px; letter-spacing: normal; text-transform: none;">Decision point</span></div>
+                <div class="timeline-what">
+                    <strong>Review and decide</strong>
+                    <span>We compare conversion rate (form completed ÷ CTA click) across the three labels and choose what to do next.</span>
+                </div>
+            </li>
+        </ul>
+
+        <h2>What We Decide On June 6</h2>
+        <div class="rule"></div>
+        <div class="decision">
+            <h3>Three possible outcomes</h3>
+            <ul>
+                <li><strong>Clear winner.</strong> If one variant beats the control by 20% or more on conversion rate, with enough completions per arm to be confident, we retire the other two and lock in the winner site-wide.</li>
+                <li><strong>Too close to call.</strong> If the variants are within a few percentage points of each other, we either extend the test by two more weeks for more data, or accept that label choice isn't the bottleneck and move on to testing the next part of the funnel (e.g., the form length, the section copy, the photography).</li>
+                <li><strong>Surprise insight.</strong> If a variant we expected to win underperforms, that's also a finding — it tells us something about how this specific audience reads luxury-brand language at SNA, and shapes how we write everything else.</li>
+            </ul>
+        </div>
+
+        <h2>One Thing to Know</h2>
+        <div class="rule"></div>
+        <p>
+            Each visitor consistently sees the same label across visits. If you load jaysaircenter.com and see "Join Waitlist," refreshing the page won't change it — that's by design, so the experiment produces clean data. To see the other variants yourself, open the site in an incognito window or clear browser data.
+        </p>
+
+        <footer>
+            <span>Confidential — Not for redistribution</span>
+            <span>H9 Partners</span>
+        </footer>
+
+    </div>
+</body>
+</html>

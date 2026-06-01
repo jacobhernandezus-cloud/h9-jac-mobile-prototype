@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "valet-prototype",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "4321", "jays-air-center-website"],
+      "port": 4321
+    }
+  ]
+}

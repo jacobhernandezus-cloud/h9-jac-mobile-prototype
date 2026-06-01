@@ -1,0 +1,32 @@
+{
+  "name": "jays-air-center-website",
+  "version": "1.0.0",
+  "description": "Jay's Air Center - Luxury Aviation Website at John Wayne Airport",
+  "scripts": {
+    "dev": "npx serve . & npx tailwindcss -i ./src/input.css -o ./css/output.css --watch",
+    "build": "npx tailwindcss -i ./src/input.css -o ./css/output.css --minify",
+    "serve": "npx serve .",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^30.3.0",
+    "serve": "^14.2.6",
+    "tailwindcss": "^3.4.0"
+  },
+  "keywords": [
+    "aviation",
+    "luxury",
+    "john-wayne-airport",
+    "fbo",
+    "hangars"
+  ],
+  "author": "Jay's Air Center",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "uuid": "^9.0.1"
+  }
+}
