@@ -27,3 +27,4 @@ npm-debug.log*
 # Local build scratch / render artifacts
 .deck-build/
 **/*.pdf.tmp
+.gstack/

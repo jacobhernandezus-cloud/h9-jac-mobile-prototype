@@ -26,6 +26,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "@netlify/blobs": "^8.2.0",
     "firebase-admin": "^12.7.0",
     "uuid": "^9.0.1"
   }

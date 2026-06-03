@@ -1,0 +1,192 @@
+// Jay's Valet — data layer. One interface, two backends:
+//   • NetlifyBackend — Netlify Functions + Netlify Blobs (no Google/AWS account).
+//                      Auth via signed cookie; realtime via short-interval polling.
+//   • DemoBackend    — in-memory + localStorage (cross-tab sync), no backend at all.
+// app.js never talks to the network directly; it talks to the backend returned here.
+// We auto-detect: if /api/valet-auth answers, we're live; otherwise (static file
+// serving) we fall back to demo so the app is always runnable and shareable.
+
+const API = "/api";
+const POLL_MS = 3000;
+
+const DEMO_USERS = {
+  owner: {
+    uid: "demo-owner", role: "owner", name: "George Marsh", avatar: "GM",
+    greet: "Good morning, George.", sub: "Your aircraft is on the ramp and ready when you are.",
+    tail: "N559JC", aircraftType: "Cirrus SR22T G6", home: "Row B · 14", billNote: null,
+  },
+  tenant: {
+    uid: "demo-tenant", role: "tenant", name: "Alex Rivera", avatar: "AR",
+    greet: "Welcome, Alex.", sub: "Leasing Row C · Tie-down 4.",
+    tail: "N218AT", aircraftType: "Cessna 182T", home: "Row C · TD 4",
+    billNote: "Valet services are billed per use to your tenant account.",
+  },
+  operator: {
+    uid: "demo-operator", role: "operator", name: "Marcus Reyes", avatar: "MR",
+  },
+};
+
+/* ============================ DEMO BACKEND ============================ */
+class DemoBackend {
+  constructor() {
+    this.mode = "demo";
+    this.KEY = "valet_demo_requests";
+    this.role = sessionStorage.getItem("valet_demo_role") || "owner";
+    this.watchers = new Set();
+    window.addEventListener("storage", (e) => {
+      if (e.key === this.KEY) this._notify();
+    });
+  }
+  _all() {
+    try { return JSON.parse(localStorage.getItem(this.KEY) || "[]"); }
+    catch { return []; }
+  }
+  _save(list) {
+    localStorage.setItem(this.KEY, JSON.stringify(list));
+    this._notify(); // same-tab (storage event only fires in OTHER tabs)
+  }
+  _notify() { this.watchers.forEach((w) => w(this._all())); }
+
+  onAuth(cb) { this._authCb = cb; cb(this.session()); return () => {}; }
+  session() { return { ...DEMO_USERS[this.role] }; }
+  demoSwitch(role) {
+    this.role = role;
+    sessionStorage.setItem("valet_demo_role", role);
+    if (this._authCb) this._authCb(this.session());
+  }
+  async signIn() { throw new Error("Demo mode — use the role switcher above."); }
+  async signUp() { this.demoSwitch("tenant"); }
+  async signOut() {}
+  async registerPush() {} // no-op in demo (in-app banners only)
+
+  async createRequest(data) {
+    const list = this._all();
+    const id = "r" + Date.now() + Math.floor(Math.random() * 999);
+    list.unshift({ id, ...data, createdAt: Date.now(), updatedAt: Date.now() });
+    this._save(list);
+    return id;
+  }
+  async updateRequest(id, patch) {
+    const list = this._all();
+    const i = list.findIndex((r) => r.id === id);
+    if (i < 0) return;
+    list[i] = { ...list[i], ...patch, updatedAt: Date.now() };
+    this._save(list);
+  }
+  async setTipRating(id, patch) { return this.updateRequest(id, patch); }
+
+  watchMyRequests(uid, cb) {
+    const w = (all) => cb(all.filter((r) => r.customerUid === uid));
+    this.watchers.add(w); w(this._all());
+    return () => this.watchers.delete(w);
+  }
+  watchQueue(cb) {
+    const w = (all) => cb(all);
+    this.watchers.add(w); w(this._all());
+    return () => this.watchers.delete(w);
+  }
+}
+
+/* =========================== NETLIFY BACKEND ========================== */
+// Talks to /api/valet-auth and /api/valet-requests. No Firebase, no external
+// SDK — just fetch() with the session cookie. Realtime is short-interval
+// polling, which is plenty for this volume and keeps everything same-origin
+// (works under the site's strict `connect-src 'self'` CSP).
+class NetlifyBackend {
+  constructor(initialUser) {
+    this.mode = "live";
+    this.user = initialUser || null;
+  }
+  async _post(path, body) {
+    const res = await fetch(`${API}/${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "request-failed");
+    return data;
+  }
+  async _get(path) {
+    const res = await fetch(`${API}/${path}`, { credentials: "same-origin" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "request-failed");
+    return data;
+  }
+
+  onAuth(cb) { this._authCb = cb; cb(this.user); return () => {}; }
+  demoSwitch() {} // n/a in live mode
+
+  async signIn(email, password) {
+    const { user } = await this._post("valet-auth", { action: "login", email, password });
+    this.user = user;
+    if (this._authCb) this._authCb(user);
+  }
+  async signUp({ name, email, password, tail, type, lease }) {
+    const { user } = await this._post("valet-auth", { action: "signup", name, email, password, tail, type, lease });
+    this.user = user;
+    if (this._authCb) this._authCb(user);
+  }
+  async signOut() {
+    await this._post("valet-auth", { action: "logout" }).catch(() => {});
+    this.user = null;
+    if (this._authCb) this._authCb(null);
+  }
+  async registerPush() {} // in-app banners only — nothing to register
+
+  async createRequest(data) {
+    const { request } = await this._post("valet-requests", { action: "create", data });
+    return request.id;
+  }
+  async updateRequest(id, patch) {
+    // `notify` is a client-only hint for the old push path; never sent to the server.
+    const { notify, ...clean } = patch;
+    await this._post("valet-requests", { action: "update", id, patch: clean });
+  }
+  async setTipRating(id, patch) {
+    await this._post("valet-requests", { action: "update", id, patch });
+  }
+
+  _poll(scope, cb) {
+    let stopped = false, timer = null;
+    const tick = async () => {
+      if (stopped) return;
+      try { const { requests } = await this._get(`valet-requests?scope=${scope}`); if (!stopped) cb(requests || []); }
+      catch (_) { /* transient — try again next tick */ }
+      if (!stopped) timer = setTimeout(tick, POLL_MS);
+    };
+    tick();
+    return () => { stopped = true; if (timer) clearTimeout(timer); };
+  }
+  watchMyRequests(_uid, cb) { return this._poll("mine", cb); }
+  watchQueue(cb) { return this._poll("queue", cb); }
+}
+
+/* ============================ backend select ========================== */
+// `?demo=1` forces the self-serve demo experience (role switcher, no login)
+// even on the deployed site — this is the shareable link for stakeholders.
+// It's sticky for the session so SPA reloads keep demo mode.
+function forceDemo() {
+  try {
+    const p = new URLSearchParams(location.search);
+    if (p.get("demo") === "1") { localStorage.setItem("valet_force_demo", "1"); return true; }
+    return localStorage.getItem("valet_force_demo") === "1";
+  } catch (_) { return false; }
+}
+
+// Probe the auth function. If it responds we're deployed on Netlify (live);
+// if it 404s / errors (plain static file server) we fall back to demo.
+export async function getBackend() {
+  if (forceDemo()) return new DemoBackend();
+  try {
+    const res = await fetch(`${API}/valet-auth`, { credentials: "same-origin" });
+    if (res.ok) {
+      const { user } = await res.json();
+      return new NetlifyBackend(user);
+    }
+  } catch (_) { /* no functions available — demo it is */ }
+  return new DemoBackend();
+}
+
+export { DEMO_USERS };

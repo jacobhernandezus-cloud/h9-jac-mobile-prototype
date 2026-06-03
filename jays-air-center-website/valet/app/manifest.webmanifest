@@ -1,0 +1,19 @@
+{
+  "name": "Jay's Valet",
+  "short_name": "Jay's Valet",
+  "description": "Summon your aircraft like a Tesla — request ramp staging, schedule arrivals, track every step.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#11161d",
+  "theme_color": "#1B2838",
+  "icons": [
+    {
+      "src": "../../images/jays-air-center-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

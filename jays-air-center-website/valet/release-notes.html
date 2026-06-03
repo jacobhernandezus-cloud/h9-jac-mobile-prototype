@@ -83,8 +83,8 @@
 <header>
   <div class="kicker">Jay's Air Center · KSNA</div>
   <h1>Jay's Valet</h1>
-  <div class="tag">Aircraft staging &amp; valet — concept release notes for review</div>
-  <div class="meta">Prepared for George · rev 2 · 2026-06-01</div>
+  <div class="tag">Ramp staging &amp; car valet — concept release notes for review</div>
+  <div class="meta">Prepared for George · rev 3 · 2026-06-02</div>
 </header>
 
 <div class="cta-card">
@@ -101,9 +101,10 @@
   <h2 class="sec">What this is</h2>
   <p class="lead">
     Jay's Valet lets an aircraft owner or tenant <b>summon their plane like a Tesla</b>: request
-    staging or schedule an arrival from the app, the line operator pulls it from the hangar,
-    fuels and stages it on the ramp (or meets it on arrival and parks it), and the customer is
-    notified at every step. This page summarizes current scope, key decisions, and what's next.
+    ramp staging or schedule an arrival from the app, the line operator stages it on the ramp and
+    valets the customer's cars (or meets the aircraft on arrival and parks it), and the customer is
+    notified at every step. Scope is limited to <b>ramp parking and staging</b> — no hangar pull-in/out
+    or towing. This page summarizes current scope, key decisions, and what's next.
   </p>
 
   <h2 class="sec">Who uses it — three personas</h2>
@@ -111,17 +112,17 @@
   <div class="grid">
     <div class="card">
       <h3><span class="em">✈️</span> Owner</h3>
-      <p>Based owner with a hangar. Full customer experience, billed to account.</p>
-      <ul><li>Request staging &amp; arrivals</li><li>Fuel &amp; services</li><li>Tipping + history</li></ul>
+      <p>Based owner with a ramp tie-down. Full customer experience, billed to account.</p>
+      <ul><li>Request ramp staging &amp; arrivals</li><li>Cars to valet &amp; services</li><li>Tipping + history</li></ul>
     </div>
     <div class="card">
       <h3><span class="em">🧑‍✈️</span> Line operator</h3>
-      <p>Jay's ground staff who move, fuel, and park aircraft.</p>
+      <p>Jay's ground staff who stage and park aircraft on the ramp and valet customers' cars.</p>
       <ul><li>Work the request queue</li><li>Advance status</li><li>Receive tips</li></ul>
     </div>
     <div class="card">
       <h3><span class="em">🔑</span> Tenant</h3>
-      <p>Leases a hangar or tie-down. Self-registers in-app, billed per use.</p>
+      <p>Leases a ramp tie-down. Self-registers in-app, billed per use.</p>
       <ul><li>In-app sign-up</li><li>Same request flows as owner</li><li>Scoped to their aircraft</li></ul>
     </div>
   </div>
@@ -135,10 +136,9 @@
   <table>
     <tr><th>Feature</th><th class="c">Owner</th><th class="c">Tenant</th><th class="c">Operator</th></tr>
     <tr><td>In-app sign-up</td><td class="c no">—</td><td class="c yes">✓</td><td class="c no">—</td></tr>
-    <tr><td>Request aircraft staging</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Request ramp staging</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
     <tr><td>Schedule / Announce arrival</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
-    <tr><td>Return aircraft to ramp</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
-    <tr><td>Fuel &amp; services</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
+    <tr><td>Cars to valet &amp; services</td><td class="c yes">✓</td><td class="c yes">✓</td><td class="c no">—</td></tr>
     <tr><td>Electronic tip (Version A)</td><td class="c yes">send</td><td class="c yes">send</td><td class="c yes">receive</td></tr>
     <tr><td>Ops queue / advance status</td><td class="c no">—</td><td class="c no">—</td><td class="c yes">✓</td></tr>
   </table>
@@ -146,14 +146,14 @@
   <h2 class="sec">Key flows</h2>
   <div class="grid">
     <div class="card">
-      <h3>Departure — Request aircraft staging</h3>
+      <h3>Departure — Request ramp staging</h3>
       <p><b>Scheduled only</b>, 2-hour minimum lead (keeps last-minute ramp traffic down).</p>
-      <div class="flow"><span>Request</span><b>→</b><span>Operator assigned</span><b>→</b><span>Towing</span><b>→</b><span>Fuel</span><b>→</b><span>Staged &amp; ready</span></div>
+      <div class="flow"><span>Request</span><b>→</b><span>Operator assigned</span><b>→</b><span>Staging on ramp</span><b>→</b><span>Cars valeted</span><b>→</b><span>Staged &amp; ready</span></div>
     </div>
     <div class="card">
       <h3>Arrival — Schedule &amp; Announce</h3>
       <p>Schedule an ETA (~2 hrs out), then announce on final. Services requested before parking.</p>
-      <div class="flow"><span>Announce</span><b>→</b><span>Dispatched</span><b>→</b><span>Meeting aircraft</span><b>→</b><span>Fuel</span><b>→</b><span>Parked</span></div>
+      <div class="flow"><span>Announce</span><b>→</b><span>Dispatched</span><b>→</b><span>Meeting aircraft</span><b>→</b><span>Services</span><b>→</b><span>Parked on ramp</span></div>
     </div>
   </div>
 
@@ -170,20 +170,20 @@
   </div>
   <p style="margin-top:12px;font-size:14px;color:#6a6a62">In the prototype, the <b>tipping toggle</b> at the top switches between A and B live.</p>
 
-  <h2 class="sec">Decisions in this iteration <span class="pill">rev 2</span></h2>
+  <h2 class="sec">Decisions in this iteration <span class="pill">rev 3</span></h2>
   <div class="timeline">
+    <div class="item"><b>Scope limited to ramp parking &amp; staging</b><p>Removed all hangar functionality — pull-in/out and towing services are out. The app is strictly a ramp staging &amp; valet service.</p></div>
+    <div class="item"><b>"Cars to valet" added to the staging request</b><p>Tenants specify how many cars they'll park in the staging area, so the valet knows how many vehicles to handle.</p></div>
+    <div class="item"><b>Fuel deferred to a later phase</b><p>No fuel features for now; fuel-related feedback is parked for a future iteration.</p></div>
     <div class="item"><b>Three personas formalized</b><p>Owner, line operator, tenant — each with a defined feature set.</p></div>
     <div class="item"><b>Departures are scheduled only</b><p>2-hour minimum lead; removed "stage now" to prevent last-minute ramp congestion.</p></div>
-    <div class="item"><b>Renamed actions</b><p>"Stage aircraft for departure" → "Request aircraft staging"; "Return to hangar" → "Return aircraft to ramp."</p></div>
-    <div class="item"><b>Arrival journey added</b><p>"Schedule arrival" + "Announce arrival," with a request-services step before parking.</p></div>
-    <div class="item"><b>Fuel simplified</b><p>Only "Top off Jet A" / "Top off 100LL," each fills the tank. Removed set-quantity.</p></div>
     <div class="item"><b>Tenant self-sign-up</b><p>Renters onboard themselves in-app, billed per use.</p></div>
   </div>
 
   <h2 class="sec">Roadmap <span class="pill next">next</span></h2>
   <div class="grid">
     <div class="card"><h3>Near term</h3><ul><li>Real auth + per-user aircraft</li><li>Real push (APNs) + SMS fallback</li><li>Payments + tip payout (Stripe)</li></ul></div>
-    <div class="card"><h3>Later</h3><ul><li>Billing integration with Jay's FBO software</li><li>Multi-aircraft / flight-department accounts</li><li>Operator scheduling + SLA timers</li><li>Live ramp map</li></ul></div>
+    <div class="card"><h3>Later</h3><ul><li>Fuel &amp; line services (deferred phase)</li><li>Billing integration with Jay's FBO software</li><li>Multi-aircraft / flight-department accounts</li><li>Operator scheduling + SLA timers</li><li>Live ramp map</li></ul></div>
   </div>
 
   <h2 class="sec">Open questions for you</h2>
@@ -191,7 +191,7 @@
     <li>Tipping in or out for v1? (Drives whether we ship Version A or B.)</li>
     <li>Is a 2-hour departure minimum right, or should it flex by aircraft type / time of day?</li>
     <li>Should tenant sign-up need Jay's approval, or be instant?</li>
-    <li>Do fuel/services get <b>billed</b> through the app, or just <b>requested</b>?</li>
+    <li>Do valet/services get <b>billed</b> through the app, or just <b>requested</b>?</li>
     <li>Any existing FBO software we must integrate with for billing / aircraft data?</li>
   </ol>
 

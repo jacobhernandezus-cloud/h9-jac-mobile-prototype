@@ -74,7 +74,7 @@
   .ac-meta div span{display:block;font-size:11px;color:#7e93a6;text-transform:uppercase;letter-spacing:.08em}
   .ac-meta div b{font-size:15px;font-weight:500;color:#eef3f7}
   .badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:500;padding:5px 11px;border-radius:999px;letter-spacing:.03em}
-  .badge.hangared{background:rgba(201,165,91,.18);color:var(--gold)}
+  .badge.parked{background:rgba(201,165,91,.18);color:var(--gold)}
   .badge.staged{background:rgba(62,142,90,.2);color:#7ed29a}
   .badge.inprog{background:rgba(74,144,164,.22);color:#8fcadd}
 
@@ -200,7 +200,7 @@
 <div class="demo-head">
   <div class="kicker">Jay's Air Center · KSNA</div>
   <h1>Jay's Valet</h1>
-  <p>Summon your aircraft like a Tesla — request staging or schedule an arrival, the line operator stages and fuels it, and you're notified the moment it's ready. Interactive concept prototype.</p>
+  <p>Summon your aircraft like a Tesla — request ramp staging or schedule an arrival, the line operator stages it on the ramp and valets your cars, and you're notified the moment it's ready. Interactive concept prototype.</p>
   <div class="controls">
     <div class="seg" id="personaSeg">
       <button data-persona="owner" class="active">Owner</button>
@@ -267,7 +267,7 @@
           <div class="center-pad">
             <div class="seal" id="readySeal">✈</div>
             <h2 id="readyTitle">Staged &amp; ready</h2>
-            <p id="readyMsg">Your aircraft is fueled and waiting on the ramp.</p>
+            <p id="readyMsg">Your aircraft is staged and waiting on the ramp.</p>
             <div class="track-hero" style="margin-top:26px;width:100%">
               <div class="small" id="readyHeroSmall">Staged at</div>
               <div class="big" id="readyHeroBig" style="font-size:24px">Row A · Spot 7</div>
@@ -317,11 +317,11 @@
           <div class="h-sub">Every staging, arrival and return.</div>
           <div class="section-label">This week</div>
           <div class="act"><div class="dot">✈</div><div class="t"><b>Staged on ramp</b><span>Row A · Spot 7 · Marcus R. · tipped $20</span></div><div class="when">May 28</div></div>
-          <div class="act"><div class="dot">⛽</div><div class="t"><b>Fuel top-off</b><span>Jet A · billed to account</span></div><div class="when">May 28</div></div>
-          <div class="act"><div class="dot">🛬</div><div class="t"><b>Arrival — parked</b><span>Row B · Spot 14 · Diego S.</span></div><div class="when">May 24</div></div>
+          <div class="act"><div class="dot">🚗</div><div class="t"><b>Cars valeted</b><span>2 vehicles · staging lot · Marcus R.</span></div><div class="when">May 28</div></div>
+          <div class="act"><div class="dot">🛬</div><div class="t"><b>Arrival — parked on ramp</b><span>Row B · Spot 14 · Diego S.</span></div><div class="when">May 24</div></div>
           <div class="section-label">Earlier</div>
           <div class="act"><div class="dot">✈</div><div class="t"><b>Staged on ramp</b><span>Row A · Spot 3 · Marcus R.</span></div><div class="when">May 19</div></div>
-          <div class="act"><div class="dot">🚗</div><div class="t"><b>Rental car delivered</b><span>Ramp-side · Enterprise</span></div><div class="when">May 19</div></div>
+          <div class="act"><div class="dot">🚗</div><div class="t"><b>Cars valeted</b><span>1 vehicle · staging lot · Diego S.</span></div><div class="when">May 19</div></div>
         </div>
 
         <div class="tabbar" id="memberTabs">
@@ -338,7 +338,7 @@
             <div class="brand">JAY'S <b>VALET</b></div>
           </div>
           <div class="h-title">Become a tenant</div>
-          <div class="h-sub">Lease a hangar or tie-down at Jay's and use the valet service.</div>
+          <div class="h-sub">Lease a ramp tie-down at Jay's and use the valet service.</div>
 
           <div class="field"><label>Full name</label><input id="suName" type="text" placeholder="Alex Rivera" value="Alex Rivera"></div>
           <div class="field"><label>Email</label><input id="suEmail" type="email" placeholder="alex@example.com" value="alex@example.com"></div>
@@ -346,12 +346,11 @@
           <div class="field"><label>Aircraft type</label><input id="suType" type="text" placeholder="Cessna 182T" value="Cessna 182T"></div>
           <div class="field"><label>Lease</label>
             <select id="suLease">
-              <option>Hangar — Row C</option>
               <option selected>Tie-down — Row C · TD 4</option>
               <option>Ramp parking (monthly)</option>
             </select>
           </div>
-          <div class="agree"><input type="checkbox" id="suAgree" checked><span>I agree to Jay's Air Center tenant terms and authorize per-use billing for fuel and valet services.</span></div>
+          <div class="agree"><input type="checkbox" id="suAgree" checked><span>I agree to Jay's Air Center tenant terms and authorize per-use billing for valet services.</span></div>
           <button class="primary" style="margin-top:22px" onclick="submitSignup()">Create tenant account</button>
           <div class="note" style="text-align:center;padding-bottom:8px">Already a tenant? This demo signs you in automatically.</div>
         </div>
@@ -371,13 +370,13 @@
             <div class="top">
               <div>
                 <div class="tail">N559JC</div>
-                <div class="req" id="opReqLine">Staging · dep 11:30 AM · George M.</div>
+                <div class="req" id="opReqLine">Ramp staging · dep 11:30 AM · George M.</div>
               </div>
               <span class="badge inprog" id="opStatusBadge">● New</span>
             </div>
             <div class="det">
               <span class="tag">From Row B · 14</span>
-              <span class="tag">Top off Jet A</span>
+              <span class="tag">2 cars to valet</span>
               <span class="tag">Lav service</span>
               <span class="tag">→ Ramp Row A · 7</span>
             </div>
@@ -388,12 +387,12 @@
           </div>
 
           <div class="crew-card" style="opacity:.62">
-            <div class="top"><div><div class="tail">N218AT</div><div class="req">Arrival · ETA 10:15 · Tenant</div></div><span class="badge hangared">● Inbound</span></div>
-            <div class="det"><span class="tag">Meet on ramp</span><span class="tag">Top off 100LL</span><span class="tag">→ Row C · TD 4</span></div>
+            <div class="top"><div><div class="tail">N218AT</div><div class="req">Arrival · ETA 10:15 · Tenant</div></div><span class="badge parked">● Inbound</span></div>
+            <div class="det"><span class="tag">Meet on ramp</span><span class="tag">1 car to valet</span><span class="tag">→ Row C · TD 4</span></div>
           </div>
           <div class="crew-card" style="opacity:.62">
-            <div class="top"><div><div class="tail">N88RV</div><div class="req">Return to ramp · King Air</div></div><span class="badge hangared">● Queued</span></div>
-            <div class="det"><span class="tag">Row C · 5</span><span class="tag">→ Ramp Row A · 11</span></div>
+            <div class="top"><div><div class="tail">N88RV</div><div class="req">Ramp staging · dep 2:15 PM · King Air</div></div><span class="badge parked">● Queued</span></div>
+            <div class="det"><span class="tag">From Row C · 5</span><span class="tag">3 cars to valet</span><span class="tag">→ Ramp Row A · 11</span></div>
           </div>
 
           <div class="legend" style="margin:24px 20px 0;max-width:none">
@@ -408,8 +407,8 @@
 
   <div class="legend" style="align-self:center">
     <b>How to demo</b><br>
-    1 · <b>Owner</b> → tap <b>Request aircraft staging</b> (scheduled only, 2 hrs+ out) or <b>Schedule / Announce arrival</b>.<br>
-    2 · Pick fuel (<b>Top off Jet A / 100LL</b>) and services, confirm, watch the live tracker.<br>
+    1 · <b>Owner</b> → tap <b>Request ramp staging</b> (scheduled only, 2 hrs+ out) or <b>Schedule / Announce arrival</b>.<br>
+    2 · Set <b>cars to valet</b> and pick services, confirm, watch the live tracker.<br>
     3 · It ends in a <b>tip</b> (Version A) or a <b>rating</b> (Version B) — flip the toggle above.<br>
     4 · <b>Tenant</b> shows the sign-up workflow; <b>Line operator</b> shows the ops queue.
   </div>
@@ -426,26 +425,26 @@
   let stepIndex = 1;
 
   const MEMBERS = {
-    owner:  {name:'George Marsh', avatar:'GM', greet:'Good morning, George.', sub:'Your aircraft is hangared and ready when you are.',
-             tail:'N559JC', type:'Cirrus SR22T G6', home:'Row B · 14', fuelType:'Jet A', role:'Owner', billNote:null},
+    owner:  {name:'George Marsh', avatar:'GM', greet:'Good morning, George.', sub:'Your aircraft is parked on the ramp and ready when you are.',
+             tail:'N559JC', type:'Cirrus SR22T G6', home:'Row B · 14', role:'Owner', billNote:null},
     tenant: {name:'Alex Rivera', avatar:'AR', greet:'Welcome, Alex.', sub:'Leasing Row C · Tie-down 4.',
-             tail:'N218AT', type:'Cessna 182T', home:'Row C · TD 4', fuelType:'100LL', role:'Tenant',
-             billNote:'Fuel and valet services are billed per use to your tenant account.'}
+             tail:'N218AT', type:'Cessna 182T', home:'Row C · TD 4', role:'Tenant',
+             billNote:'Valet services are billed per use to your tenant account.'}
   };
 
   /* flow definitions ------------------------------------------------ */
   const FLOWS = {
     stage: {
-      title:'Request aircraft staging', destSub:'departure',
+      title:'Request ramp staging', destSub:'departure',
       timeLabel:'Scheduled departure', slotKind:'depart',
       timeNote:'Scheduled departures only. Earliest available is 2 hours out — this keeps last-minute ramp traffic down.',
-      showFuel:true, showServices:true, cta:'Confirm staging request',
+      showCars:true, showServices:true, cta:'Confirm staging request',
       trackTitle:'Estimated ready', heroSpot:'Staging at Row A · Spot 7',
       steps:[
         ['Request received','Line operator notified'],
-        ['Operator assigned','Marcus is heading to your hangar'],
-        ['Towing to ramp','Aircraft moving from the hangar'],
-        ['Fuel & services','Top-off in progress'],
+        ['Operator assigned','Marcus is on the way'],
+        ['Staging on ramp','Positioning your aircraft'],
+        ['Cars valeted','Your vehicles are parked'],
         ['Staged & ready','Ready for departure at Row A · 7']
       ],
       final:'departure', completeTitle:'Staged & ready', completeSpotLabel:'Staged at', completeSpot:'Row A · Spot 7'
@@ -454,35 +453,22 @@
       title:'Schedule arrival', destSub:'inbound to KSNA',
       timeLabel:'Estimated arrival', slotKind:'arrive',
       timeNote:'Pick a slot within the next ~2 hours so the line operator is ready when you taxi in.',
-      parking:true, showFuel:true, showServices:true, servicesBeforePark:true,
+      showServices:true, servicesBeforePark:true,
       cta:'Confirm arrival', final:'schedule'
     },
     announce: {
       title:'Announce arrival', destSub:'on final approach', quick:true,
-      parking:true, showFuel:true, showServices:true, servicesBeforePark:true,
+      showServices:true, servicesBeforePark:true,
       cta:"Announce — I'm 15 min out",
       trackTitle:'Operator meeting your aircraft', heroSpot:'Marshalling to Row C · TD 4',
       steps:[
         ['Arrival announced','Line operator notified'],
         ['Operator dispatched','Marcus heading to the ramp'],
         ['Meeting aircraft','Marshalling in'],
-        ['Fuel & services','Requested services before parking'],
-        ['Parked','Secured at the assigned spot']
+        ['Services','Requested services before parking'],
+        ['Parked on ramp','Secured at the assigned spot']
       ],
-      final:'parked', completeTitle:'Parked & secured', completeSpotLabel:'Parked at', completeSpot:'home spot'
-    },
-    ramp: {
-      title:'Return aircraft to ramp', destSub:'reposition to ramp',
-      showFuel:true, showServices:true, cta:'Confirm request',
-      trackTitle:'Estimated ready', heroSpot:'Repositioning to Row A · 7',
-      steps:[
-        ['Request received','Line operator notified'],
-        ['Operator assigned','Marcus on the way'],
-        ['Repositioning','Moving to the ramp'],
-        ['Fuel & services','Top-off in progress'],
-        ['On the ramp','Ready at Row A · 7']
-      ],
-      final:'parked', completeTitle:'On the ramp', completeSpotLabel:'Ready at', completeSpot:'Row A · Spot 7'
+      final:'parked', completeTitle:'Parked on the ramp', completeSpotLabel:'Parked at', completeSpot:'home spot'
     }
   };
 
@@ -541,7 +527,7 @@
     MEMBERS.tenant.avatar=name.split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
     MEMBERS.tenant.greet='Welcome, '+name.split(' ')[0]+'.';
     MEMBERS.tenant.tail=tail; MEMBERS.tenant.type=type;
-    MEMBERS.tenant.sub='Leasing '+lease.replace('Tie-down — ','').replace('Hangar — ','')+'.';
+    MEMBERS.tenant.sub='Leasing '+lease.replace('Tie-down — ','')+'.';
     tenantSignedUp=true;
     pushNotif('✓','Account created','Welcome to Jay’s Valet, '+name.split(' ')[0]+'!');
     MEMBER=MEMBERS.tenant; show('memberApp'); renderHome(); showView('home'); resetTabs();
@@ -564,26 +550,22 @@
 
       <div class="ac-card">
         <div class="plane">✈</div>
-        <span class="badge hangared" id="acBadge">● In hangar</span>
+        <span class="badge parked" id="acBadge">● On the ramp</span>
         <div class="ac-tail" style="margin-top:12px">${m.tail}</div>
         <div class="ac-type">${m.type}</div>
         <div class="ac-meta">
           <div><span>Home</span><b>${m.home}</b></div>
-          <div><span>Fuel</span><b>1/2 tank</b></div>
-          <div><span>Status</span><b id="acStatusTxt">Hangared</b></div>
+          <div><span>Status</span><b id="acStatusTxt">On the ramp</b></div>
         </div>
       </div>
 
       <div class="section-label">Departure</div>
-      <button class="primary" onclick="openFlow('stage')">✈&nbsp; Request aircraft staging</button>
+      <button class="primary" onclick="openFlow('stage')">✈&nbsp; Request ramp staging</button>
       <div class="note">Scheduled departures only · earliest 2 hours out.</div>
 
       <div class="section-label">Arrival</div>
       <button class="primary dark" onclick="openFlow('arrive')">🗓️&nbsp; Schedule arrival</button>
       <button class="ghost" onclick="openFlow('announce')">🛬&nbsp; Announce arrival</button>
-
-      <div class="section-label">More</div>
-      <button class="ghost" onclick="openFlow('ramp')">⤵&nbsp; Return aircraft to ramp</button>
       ${bill}
       <div id="pendingWrap"></div>
 
@@ -597,7 +579,7 @@
   function showView(name){
     document.querySelectorAll('#memberApp .view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
   }
-  function goHome(){ setBadge('hangared'); showView('home'); resetTabs(); }
+  function goHome(){ setBadge('parked'); showView('home'); resetTabs(); }
   function tabTo(name,btn){
     showView(name);
     document.querySelectorAll('#memberTabs button').forEach(b=>b.classList.remove('active'));
@@ -625,16 +607,10 @@
       h+=`<div class="note">${f.timeNote}</div>`;
     }
 
-    if(f.parking){
-      h+=`<div class="section-label">Parking</div>`;
-      h+=`<div class="chips"><div class="chip sel" onclick="oneChip(this)">Into hangar</div><div class="chip" onclick="oneChip(this)">Ramp tie-down</div></div>`;
-    }
-
-    if(f.showFuel){
-      h+=`<div class="section-label">Fuel — tops off the tank</div>`;
-      const jetSel = m.fuelType==='Jet A' ? 'sel' : '';
-      const llSel  = m.fuelType==='100LL' ? 'sel' : '';
-      h+=`<div class="chips"><div class="chip ${jetSel}" onclick="oneChip(this)">Top off Jet A</div><div class="chip ${llSel}" onclick="oneChip(this)">Top off 100LL</div></div>`;
+    if(f.showCars){
+      h+=`<div class="section-label">Cars to valet — parking in the staging area</div>`;
+      h+=`<div class="chips" id="carChips">`+['0','1','2','3','4+'].map((c,i)=>`<div class="chip ${i===1?'sel':''}" onclick="oneChip(this)">${c}</div>`).join('')+`</div>`;
+      h+=`<div class="note">Lets the valet know how many vehicles to park while you're out.</div>`;
     }
 
     if(f.showServices){
@@ -650,8 +626,11 @@
   function oneChip(el){el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
   function multiChip(el){el.classList.toggle('sel');}
 
+  let carCount='1';
   function submitFlow(){
     const f=FLOWS[curFlow];
+    const carsSel=document.querySelector('#carChips .chip.sel');
+    if(carsSel) carCount=carsSel.textContent;
     if(f.final==='schedule'){
       const t=document.querySelector('#timeChips .chip.sel')?.textContent||'soon';
       pushNotif('🗓️','Arrival scheduled','A spot will be ready for '+t+'.');
@@ -669,16 +648,25 @@
   /* ================= tracking ================= */
   function stepIcon(label){
     const l=label.toLowerCase();
-    if(l.includes('fuel'))return '⛽';
-    if(l.includes('tow')||l.includes('repos')||l.includes('marshal')||l.includes('meeting')||l.includes('dispatch'))return '🚜';
+    if(l.includes('car')||l.includes('valet'))return '🚗';
+    if(l.includes('marshal')||l.includes('meeting')||l.includes('dispatch'))return '🚜';
     if(l.includes('parked'))return '🅿️';
-    if(l.includes('staged')||l.includes('ready')||l.includes('ramp'))return '✈';
+    if(l.includes('staged')||l.includes('ready')||l.includes('ramp')||l.includes('staging'))return '✈';
     if(l.includes('assigned'))return '🧑‍✈️';
     return '✓';
   }
   function startTracking(f){
-    curSteps=f.steps; stepIndex=1;
-    document.getElementById('steps').innerHTML = f.steps.map((s,i)=>{
+    const dispSteps = f.steps.map(s=>{
+      if(s[0]==='Cars valeted'){
+        if(carCount==='0') return ['Staging only','No cars to valet this time'];
+        const n = carCount==='1' ? '1 vehicle parked in the staging area'
+                                 : carCount+' vehicles parked in the staging area';
+        return ['Cars valeted', n];
+      }
+      return s;
+    });
+    curSteps=dispSteps; stepIndex=1;
+    document.getElementById('steps').innerHTML = dispSteps.map((s,i)=>{
       const cls=i===0?'done':(i===1?'active':'');
       const node=i===0?'✓':(i+1);
       return `<div class="step ${cls}"><div class="node">${node}</div><div class="rail"></div><div class="lbl"><b>${s[0]}</b><span>${s[1]}</span></div></div>`;
@@ -710,7 +698,7 @@
     const f=FLOWS[curFlow];
     document.getElementById('trackBadge').textContent='● Complete';
     document.getElementById('trackBadge').className='badge staged';
-    setBadge(f.final==='departure'?'staged':'hangared');
+    setBadge(f.final==='departure'?'staged':'parked');
     // complete screen
     document.getElementById('readySeal').textContent = f.final==='departure'?'✈':'🅿️';
     document.getElementById('readyTitle').textContent = f.completeTitle;
@@ -763,7 +751,7 @@
   function setBadge(kind){
     const b=document.getElementById('acBadge');if(!b)return;
     const st=document.getElementById('acStatusTxt');
-    if(kind==='hangared'){b.className='badge hangared';b.textContent='● In hangar';if(st)st.textContent='Hangared';}
+    if(kind==='parked'){b.className='badge parked';b.textContent='● On the ramp';if(st)st.textContent='On the ramp';}
     if(kind==='inprog'){b.className='badge inprog';b.textContent='● In progress';if(st)st.textContent='In progress';}
     if(kind==='staged'){b.className='badge staged';b.textContent='● Staged & ready';if(st)st.textContent='Staged';}
   }
@@ -771,9 +759,9 @@
   /* ================= operator side ================= */
   const opSteps=[
     ['Accept request','● Accepted','status updated · owner notified'],
-    ['Start tow','● Towing','towing from the hangar'],
-    ['Begin fueling','● Fueling','top-off in progress'],
-    ['Mark staged & ready','● Staging','positioning on ramp'],
+    ['Begin staging','● Staging','positioning on the ramp'],
+    ['Valet cars','● Valet','parking 2 vehicles in the staging lot'],
+    ['Mark staged & ready','● Staging','final positioning on ramp'],
     ['Done','● Complete','staged at Row A · 7']
   ];
   let opIdx=0;
