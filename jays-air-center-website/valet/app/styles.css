@@ -28,12 +28,10 @@ body{
 .envbar select{background:none;border:1px solid #34465a;color:#cdd8e2;border-radius:6px;
   font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:2px 6px;margin-left:6px}
 
-.app{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
-.view{position:absolute;inset:0;display:flex;flex-direction:column;overflow-y:auto;
-  padding-bottom:20px;background:var(--warm-white);transition:opacity .25s;opacity:0;pointer-events:none}
-.view.active{opacity:1;pointer-events:auto;position:relative}
-.view::-webkit-scrollbar{width:0}
-.view > *{flex-shrink:0}
+.app{flex:1;display:flex;flex-direction:column;position:relative;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.app::-webkit-scrollbar{width:0}
+.app > *{flex-shrink:0}
 
 /* ---------- Auth ---------- */
 .auth{flex:1;display:flex;flex-direction:column;padding:38px 28px 28px;overflow-y:auto}
@@ -55,6 +53,9 @@ body{
 
 /* Aircraft card */
 .ac-card{margin:0 20px;background:var(--deep-navy);border-radius:22px;padding:22px;color:var(--warm-white);position:relative;overflow:hidden}
+.ac-card.tappable{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.ac-card.tappable:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(20,35,56,.28)}
+.ac-card.tappable:active{transform:translateY(0)}
 .ac-card .plane{position:absolute;right:-26px;top:-10px;font-size:120px;opacity:.07;transform:rotate(-18deg)}
 .ac-tail{font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:.08em;color:#fff;font-weight:500}
 .ac-type{font-size:13px;color:#9fb0c2;font-weight:300;margin-top:2px}
@@ -71,6 +72,16 @@ body{
 .primary:active{transform:scale(.985)}
 .primary:disabled{opacity:.5;cursor:not-allowed}
 .primary.dark{background:var(--deep-navy);color:var(--warm-white)}
+.primary.big{font-size:17px;padding:20px;border-radius:18px;box-shadow:0 10px 26px rgba(201,165,91,.32)}
+
+/* Home primary action block — Uber/Lyft-style single focal CTA */
+.home-cta{margin-top:22px}
+.home-cta .ghost{margin-top:12px}
+
+/* Sticky submit bar on request forms — always visible above the fold's end */
+.submitbar{position:sticky;bottom:0;margin-top:26px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top, var(--warm-white) 62%, rgba(248,246,243,0))}
+.submitbar .primary{margin:0;width:100%;font-size:16.5px;padding:18px}
 .ghost{display:flex;align-items:center;justify-content:center;gap:9px;margin:10px 20px 0;background:transparent;color:var(--deep-navy);border:1.5px solid var(--soft-gray);font-family:'DM Sans';font-size:15px;font-weight:500;padding:15px;border-radius:16px;cursor:pointer}
 .linkbtn{background:none;border:none;color:var(--sky);font-weight:500;font-size:14px;cursor:pointer;font-family:'DM Sans'}
 .note{padding:8px 24px 0;font-size:12px;color:#9a9a90;font-weight:300;line-height:1.5}
@@ -89,6 +100,9 @@ body{
 .pending .t{flex:1}
 .pending .t b{font-size:14px;font-weight:500;display:block;color:var(--charcoal)}
 .pending .t span{font-size:12.5px;color:#9a9a90;font-weight:300}
+/* Staging requests read blue, to set them apart from gold parking requests */
+.pending.stage{border-color:var(--sky);background:#f3f9fb}
+.pending.stage .dot{background:rgba(74,144,164,.18)}
 .empty{margin:18px 20px;text-align:center;color:#b0b0a6;font-weight:300;font-size:13.5px;padding:26px 10px;border:1.5px dashed var(--soft-gray);border-radius:16px}
 
 /* Request screen */
@@ -166,6 +180,7 @@ body{
 /* Operator queue cards */
 .crew-card{margin:14px 20px 0;background:#fff;border:1px solid var(--soft-gray);border-radius:18px;padding:18px}
 .crew-card.dim{opacity:.6}
+.crew-card.stage{border-left:3px solid var(--sky)}
 .crew-card .top{display:flex;justify-content:space-between;align-items:flex-start}
 .crew-card .tail{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;color:var(--deep-navy)}
 .crew-card .req{font-size:12.5px;color:#9a9a90;font-weight:300;margin-top:3px}

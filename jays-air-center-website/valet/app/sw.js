@@ -2,7 +2,7 @@
 // No push messaging here: status updates surface as in-app banners driven by
 // the app's polling loop. Network-first for navigations so the app stays fresh;
 // cache-first for static assets.
-const CACHE = "valet-shell-v3";
+const CACHE = "valet-shell-v5";
 const SHELL = [
   "./",
   "./index.html",
@@ -33,5 +33,18 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(fetch(req).catch(() => caches.match("./index.html")));
     return;
   }
-  e.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
+  // Network-first for app code so a fresh deploy is always picked up; the cache
+  // is just an offline fallback. (Cache-first here is what served George a
+  // stale build after we shipped the redesign.)
+  e.respondWith(
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok && url.origin === self.location.origin) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req))
+  );
 });

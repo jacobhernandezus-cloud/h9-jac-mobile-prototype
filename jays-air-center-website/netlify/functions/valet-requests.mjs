@@ -38,11 +38,15 @@ export default async (req) => {
     let p; try { p = await req.json(); } catch { return json(400, { error: 'invalid json' }); }
 
     if (p.action === 'create') {
+      // A customer may attach an optional tip at request time; everything else
+      // that confers privilege (status/step/operator) is forced server-side.
+      const reqTip = (p.data && p.data.tip && typeof p.data.tip.amount === 'number')
+        ? { amount: p.data.tip.amount, mock: true } : null;
       const doc = await createRequest({
         ...(p.data || {}),
         customerUid: sess.uid,          // force ownership to the caller
         status: 'requested', stepIndex: 0,
-        operatorUid: null, operatorName: null, tip: null, rating: null,
+        operatorUid: null, operatorName: null, tip: reqTip, rating: null,
       });
       return json(200, { request: doc });
     }

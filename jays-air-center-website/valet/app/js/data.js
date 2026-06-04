@@ -10,10 +10,10 @@ const API = "/api";
 const POLL_MS = 3000;
 
 const DEMO_USERS = {
+  // The owner runs the FBO — oversight only, not a customer placing requests.
   owner: {
     uid: "demo-owner", role: "owner", name: "George Marsh", avatar: "GM",
-    greet: "Good morning, George.", sub: "Your aircraft is on the ramp and ready when you are.",
-    tail: "N559JC", aircraftType: "Cirrus SR22T G6", home: "Row B · 14", billNote: null,
+    greet: "Good morning, George.", sub: "Every request across the ramp, in one place.",
   },
   tenant: {
     uid: "demo-tenant", role: "tenant", name: "Alex Rivera", avatar: "AR",
@@ -21,8 +21,8 @@ const DEMO_USERS = {
     tail: "N218AT", aircraftType: "Cessna 182T", home: "Row C · TD 4",
     billNote: "Valet services are billed per use to your tenant account.",
   },
-  operator: {
-    uid: "demo-operator", role: "operator", name: "Marcus Reyes", avatar: "MR",
+  lineman: {
+    uid: "demo-operator", role: "lineman", name: "Marcus Reyes", avatar: "MR",
   },
 };
 
@@ -31,11 +31,74 @@ class DemoBackend {
   constructor() {
     this.mode = "demo";
     this.KEY = "valet_demo_requests";
-    this.role = sessionStorage.getItem("valet_demo_role") || "owner";
+    this.role = sessionStorage.getItem("valet_demo_role") || "tenant";
     this.watchers = new Set();
+    this._seedIfEmpty();
     window.addEventListener("storage", (e) => {
       if (e.key === this.KEY) this._notify();
     });
+  }
+  // Pre-populate the queue so the operator view is never blank in a fresh demo.
+  // These belong to other customers, so they show in the operator queue but not
+  // in the owner/tenant "my requests" list.
+  _seedIfEmpty() {
+    if (this._all().length) return;
+    const now = Date.now();
+    const seed = [
+      {
+        id: "seed-park-1", type: "park",
+        customerUid: "seed-okafor", customerName: "Daniel Okafor", customerRole: "tenant",
+        tail: "N740JC", aircraftType: "Pilatus PC-12", home: "Row A · 3", slot: null,
+        cars: "0", fuel: "Top off Jet A", services: [],
+        spot: "Row A · 3", status: "inprogress", stepIndex: 2,
+        operatorUid: "demo-operator", operatorName: "Marcus Reyes",
+        tip: { amount: 20, mock: true }, rating: null,
+        steps: [
+          ["Request received", "Lineman notified"],
+          ["Lineman assigned", "On the way to your aircraft"],
+          ["Marshalling", "Guiding you to parking"],
+          ["Fueling", "Top off Jet A"],
+          ["Parked on ramp", "Secured at your spot"],
+        ],
+        createdAt: now - 9 * 60000, updatedAt: now - 2 * 60000,
+      },
+      {
+        id: "seed-park-2", type: "park",
+        customerUid: "seed-bradley", customerName: "Tom Bradley", customerRole: "tenant",
+        tail: "N88QX", aircraftType: "Beechcraft King Air 350", home: "Row C · TD 7", slot: null,
+        cars: "0", fuel: "None", services: ["Lav service"],
+        spot: "Row C · TD 7", status: "inprogress", stepIndex: 1,
+        operatorUid: "demo-operator", operatorName: "Marcus Reyes",
+        tip: null, rating: null,
+        steps: [
+          ["Request received", "Lineman notified"],
+          ["Lineman assigned", "On the way to your aircraft"],
+          ["Marshalling", "Guiding you to parking"],
+          ["Services", "Lav service before parking"],
+          ["Parked on ramp", "Secured at your spot"],
+        ],
+        createdAt: now - 5 * 60000, updatedAt: now - 4 * 60000,
+      },
+      {
+        id: "seed-stage-1", type: "stage",
+        customerUid: "seed-anand", customerName: "Priya Anand", customerRole: "tenant",
+        tail: "N512RG", aircraftType: "Cessna Citation CJ3", home: "Row A · Spot 7",
+        slot: "2:30 PM", cars: "1", fuel: "Top off Jet A", services: ["Catering"],
+        spot: "Row A · Spot 7", status: "requested", stepIndex: 0,
+        operatorUid: null, operatorName: null,
+        tip: { amount: 40, mock: true }, rating: null,
+        steps: [
+          ["Request received", "Lineman notified"],
+          ["Lineman assigned", "Your lineman is on the way"],
+          ["Staging on ramp", "Positioning your aircraft"],
+          ["Cars valeted", "1 vehicle parked in the staging area"],
+          ["Fueling", "Top off Jet A"],
+          ["Staged & ready", "Ready for departure at Row A · Spot 7"],
+        ],
+        createdAt: now - 1 * 60000, updatedAt: now - 1 * 60000,
+      },
+    ];
+    localStorage.setItem(this.KEY, JSON.stringify(seed));
   }
   _all() {
     try { return JSON.parse(localStorage.getItem(this.KEY) || "[]"); }

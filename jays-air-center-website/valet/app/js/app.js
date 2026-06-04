@@ -1,10 +1,10 @@
-// Jay's Valet — main app. Talks to the backend abstraction (live Firebase or
+// Jay's Valet — main app. Talks to the backend abstraction (live Netlify or
 // demo), renders the member + operator experiences, and drives the live status
 // loop: customer requests -> operator queue -> operator advances -> customer
-// sees it update in real time and gets a notification.
+// sees it update in real time and gets an in-app banner.
 import { getBackend, DEMO_USERS } from "./data.js";
 
-let backend, session = null, version = "A"; // version A = tipping (Concierge), B = standard
+let backend, session = null;
 let unsubAuth, unsubData;
 let myRequests = [];          // member: my requests
 let queue = [];               // operator: full queue
@@ -17,18 +17,41 @@ const $ = (id) => document.getElementById(id);
 const root = $("root");
 
 /* ------------------------------- flows -------------------------------- */
+// Two member flows: park (aircraft is on the ground — request parking now) and
+// stage (schedule a departure). Both optionally collect fuel, services and a
+// tip, and end with one Submit button.
 const FLOWS = {
+  park: {
+    title: "Request plane parking",
+    sub: "Your aircraft is on the ground at KSNA.",
+    showFuel: true, showServices: true, showTip: true,
+    cta: "Submit parking request",
+    trackTitle: "Lineman meeting your aircraft", finalKind: "arrival",
+    completeTitle: "Parked on the ramp", completeSpotLabel: "Parked at", spot: null,
+    buildSteps(o) {
+      const s = [
+        ["Request received", "Lineman notified"],
+        ["Lineman assigned", "On the way to your aircraft"],
+        ["Marshalling", "Guiding you to parking"],
+      ];
+      if (o.fuel && o.fuel !== "None") s.push(["Fueling", o.fuel]);
+      if (o.services && o.services.length) s.push(["Services", o.services.join(" · ") + " before parking"]);
+      s.push(["Parked on ramp", "Secured at your spot"]);
+      return s;
+    },
+  },
   stage: {
-    title: "Request ramp staging", destSub: "departure", slotKind: "depart",
-    timeLabel: "Scheduled departure",
+    title: "Request ramp staging",
+    sub: "Schedule a departure — we'll have your aircraft ready on the ramp.",
+    slotKind: "depart", timeLabel: "Scheduled departure",
     timeNote: "Scheduled departures only. Earliest available is 2 hours out — this keeps last-minute ramp traffic down.",
-    showCars: true, showFuel: true, showServices: true, cta: "Confirm staging request",
+    showCars: true, showFuel: true, showServices: true, showTip: true, cta: "Submit staging request",
     trackTitle: "Estimated ready", finalKind: "departure",
     completeTitle: "Staged & ready", completeSpotLabel: "Staged at", spot: "Row A · Spot 7",
     buildSteps(o) {
       const s = [
-        ["Request received", "Line operator notified"],
-        ["Operator assigned", "Your operator is on the way"],
+        ["Request received", "Lineman notified"],
+        ["Lineman assigned", "Your lineman is on the way"],
         ["Staging on ramp", "Positioning your aircraft"],
       ];
       if (o.cars && o.cars !== "0")
@@ -37,45 +60,6 @@ const FLOWS = {
       s.push(["Staged & ready", "Ready for departure at " + this.spot]);
       return s;
     },
-  },
-  announce: {
-    title: "Announce arrival", destSub: "on final approach", quick: true,
-    showServices: true, showFuel: true, cta: "Announce — I'm 15 min out",
-    trackTitle: "Operator meeting your aircraft", finalKind: "arrival",
-    completeTitle: "Parked on the ramp", completeSpotLabel: "Parked at", spot: null,
-    buildSteps(o) {
-      const s = [
-        ["Arrival announced", "Line operator notified"],
-        ["Operator dispatched", "Heading to the ramp"],
-        ["Meeting aircraft", "Marshalling you in"],
-      ];
-      if (o.fuel && o.fuel !== "None") s.push(["Fueling", o.fuel]);
-      if (o.services && o.services.length) s.push(["Services", o.services.join(" · ") + " before parking"]);
-      s.push(["Parked on ramp", "Secured at your spot"]);
-      return s;
-    },
-  },
-  return: {
-    title: "Return aircraft to ramp", destSub: "reposition to ramp", quick: true,
-    showFuel: true, cta: "Request return to ramp",
-    trackTitle: "Estimated ready", finalKind: "departure",
-    completeTitle: "On the ramp", completeSpotLabel: "Repositioned to", spot: "Ramp",
-    buildSteps(o) {
-      const s = [
-        ["Request received", "Line operator notified"],
-        ["Operator assigned", "Your operator is on the way"],
-        ["Repositioning", "Moving your aircraft to the ramp"],
-      ];
-      if (o.fuel && o.fuel !== "None") s.push(["Fueling", o.fuel]);
-      s.push(["On the ramp", "Repositioned and ready"]);
-      return s;
-    },
-  },
-  arrive: {
-    title: "Schedule arrival", destSub: "inbound to KSNA", slotKind: "arrive",
-    timeLabel: "Estimated arrival",
-    timeNote: "Pick a slot within the next ~2 hours so the operator is ready when you taxi in. Tap “Announce” when you're on final.",
-    showServices: true, showFuel: true, scheduled: true, cta: "Confirm scheduled arrival",
   },
 };
 
@@ -98,13 +82,14 @@ const FLOWS = {
 function resubscribe() {
   if (unsubData) { unsubData(); unsubData = null; }
   if (!session) return;
-  if (session.role === "operator") {
+  if (session.role === "lineman" || session.role === "owner") {
     unsubData = backend.watchQueue((list) => {
       queue = list;
-      if (screen === "operator") renderOperator();
+      if (screen === "lineman") renderLineman();
+      if (screen === "owner") renderOwner();
     });
   } else {
-    backend.registerPush?.(session.uid); // live: register this device for push
+    backend.registerPush?.(session.uid);
     unsubData = backend.watchMyRequests(session.uid, (list) => {
       list.forEach((r) => {
         if (lastStep[r.id] === undefined) { lastStep[r.id] = r.stepIndex ?? 0; return; }
@@ -124,9 +109,9 @@ function resubscribe() {
 /* ------------------------------ router -------------------------------- */
 function route() {
   if (!booted) return;
-  if (backend.mode === "live" && !session) return renderAuth();
   if (!session) return renderAuth();
-  if (session.role === "operator") return renderOperator();
+  if (session.role === "lineman") return renderLineman();
+  if (session.role === "owner") return renderOwner();
   renderHome();
 }
 function go(s) { screen = s; }
@@ -139,16 +124,11 @@ function renderEnvbar() {
     bar.innerHTML = `
       <span class="dot"></span> DEMO
       <select id="roleSel" title="Switch persona">
-        <option value="owner" ${session?.role === "owner" ? "selected" : ""}>Owner</option>
         <option value="tenant" ${session?.role === "tenant" ? "selected" : ""}>Tenant</option>
-        <option value="operator" ${session?.role === "operator" ? "selected" : ""}>Operator</option>
-      </select>
-      <select id="verSel" title="App version">
-        <option value="A" ${version === "A" ? "selected" : ""}>Version A · tipping</option>
-        <option value="B" ${version === "B" ? "selected" : ""}>Version B · no tip</option>
+        <option value="lineman" ${session?.role === "lineman" ? "selected" : ""}>Lineman</option>
+        <option value="owner" ${session?.role === "owner" ? "selected" : ""}>Owner</option>
       </select>`;
     $("roleSel").onchange = (e) => { trackingId = null; backend.demoSwitch(e.target.value); };
-    $("verSel").onchange = (e) => { version = e.target.value; route(); };
   } else {
     bar.classList.add("live");
     bar.innerHTML = `<span class="dot"></span> LIVE · ${session ? session.name + " · " + session.role : "signed out"}
@@ -166,7 +146,7 @@ function renderAuth() {
     <div class="auth">
       <div class="logo">JAY'S <b>VALET</b></div>
       <h1>Welcome back</h1>
-      <p class="tag">Summon your aircraft like a Tesla — request staging, schedule arrivals, track every step.</p>
+      <p class="tag">Request parking for your aircraft the moment you're on the ground — and track every step.</p>
       <div class="field"><label>Email</label><input id="liEmail" type="email" placeholder="you@example.com"></div>
       <div class="field"><label>Password</label><input id="liPass" type="password" placeholder="••••••••"></div>
       <div class="err" id="liErr"></div>
@@ -214,7 +194,6 @@ function renderSignup() {
 
 /* ------------------------------- home --------------------------------- */
 function memberProfile() {
-  // Live: session carries name/role; aircraft fields may live on session or first request.
   if (backend.mode === "demo") return DEMO_USERS[session.role];
   return {
     ...session,
@@ -230,8 +209,7 @@ function renderHome() {
   go("home");
   const m = memberProfile();
   const active = myRequests.find((r) => r.status === "requested" || r.status === "inprogress");
-  const scheduled = myRequests.filter((r) => r.scheduled && r.status === "requested");
-  const recent = myRequests.filter((r) => r.status === "complete").slice(0, 3);
+  const recent = myRequests.filter((r) => r.status === "complete").slice(0, 2);
 
   root.innerHTML = `
     <div class="ahead">
@@ -243,43 +221,32 @@ function renderHome() {
     <div class="h-title">${m.greet}</div>
     <div class="h-sub">${m.sub}</div>
 
-    <div class="ac-card">
+    <div class="ac-card${active ? " tappable" : ""}" id="acCard"${active ? ' role="button" tabindex="0"' : ""}>
       <div class="plane">✈</div>
       <span class="badge ${active ? "inprog" : "parked"}">● ${active ? "In progress" : "On the ramp"}</span>
       <div class="ac-tail" style="margin-top:12px">${m.tail}</div>
       <div class="ac-type">${m.aircraftType || ""}</div>
       <div class="ac-meta">
         <div><span>Home</span><b>${m.home}</b></div>
-        <div><span>Status</span><b>${active ? "In progress" : "On the ramp"}</b></div>
+        ${active ? `<div><span>Live status</span><b>Tap to track ›</b></div>` : ""}
       </div>
     </div>
 
-    ${active ? `<div class="pending" id="activeCard"><div class="dot">✈</div>
+    ${active ? `<div class="pending ${active.type === "stage" ? "stage" : ""}" id="activeCard"><div class="dot">${active.type === "stage" ? "🛫" : "✈"}</div>
       <div class="t"><b>${FLOWS[active.type]?.title || "Active request"} in progress</b>
-      <span>Tap to track ${active.tail} live.</span></div><div>›</div></div>` : ""}
+      <span>Tap to open ${active.tail} — live status, your lineman & tip.</span></div><div>›</div></div>` : ""}
 
-    <div class="section-label">Departure</div>
-    <button class="primary" data-flow="stage">✈&nbsp; Request ramp staging</button>
-    <div class="note">Scheduled departures only · earliest 2 hours out.</div>
-
-    <div class="section-label">Arrival</div>
-    <button class="primary dark" data-flow="arrive">🗓️&nbsp; Schedule arrival</button>
-    <button class="ghost" data-flow="announce">🛬&nbsp; Announce arrival</button>
-
-    <div class="section-label">On the ramp</div>
-    <button class="ghost" data-flow="return">↩&nbsp; Return aircraft to ramp</button>
+    <div class="home-cta">
+      <button class="primary big" data-flow="park">✈&nbsp; Request plane parking</button>
+      <button class="ghost" data-flow="stage">🗓️&nbsp; Schedule a departure</button>
+    </div>
     ${m.billNote ? `<div class="note">${m.billNote}</div>` : ""}
 
-    ${scheduled.map((r) => `<div class="pending"><div class="dot">🗓️</div>
-      <div class="t"><b>Arrival scheduled — ${r.slot || "soon"}</b>
-      <span>Tap “Announce arrival” when you're on final.</span></div></div>`).join("")}
-
-    <div class="section-label">Recent activity</div>
-    ${recent.length ? recent.map((r) => `<div class="act"><div class="dot">${stepIcon(FLOWS[r.type]?.completeTitle || "")}</div>
-      <div class="t"><b>${FLOWS[r.type]?.completeTitle || "Completed"}</b>
-      <span>${r.spot || r.home || ""} · ${r.operatorName || "Jay's line"}${r.tip ? " · tipped $" + r.tip.amount : ""}</span></div>
-      <div class="when">${fmtDate(r.updatedAt)}</div></div>`).join("")
-      : `<div class="empty">No completed requests yet. Make your first request above.</div>`}
+    ${recent.length ? `<div class="section-label">Recent activity</div>
+      ${recent.map((r) => `<div class="act" data-open="${r.id}" style="cursor:pointer"><div class="dot">${stepIcon(FLOWS[r.type]?.completeTitle || "")}</div>
+        <div class="t"><b>${FLOWS[r.type]?.completeTitle || "Completed"}</b>
+        <span>${r.spot || r.home || ""} · ${r.operatorName || "Jay's line"}${r.tip ? " · tipped $" + r.tip.amount : ""}</span></div>
+        <div class="when">${fmtDate(r.updatedAt)}</div></div>`).join("")}` : ""}
 
     <div class="tabbar">
       <button class="active"><span class="ti">⌂</span>Home</button>
@@ -288,7 +255,13 @@ function renderHome() {
     </div>`;
 
   root.querySelectorAll("[data-flow]").forEach((b) => b.onclick = () => openFlow(b.dataset.flow));
-  const ac = $("activeCard"); if (ac) ac.onclick = () => { trackingId = active.id; renderTrack(); };
+  const openActive = () => { trackingId = active.id; renderTrack(); };
+  const acCard = $("acCard"); if (acCard && active) {
+    acCard.onclick = openActive;
+    acCard.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openActive(); } };
+  }
+  const ac = $("activeCard"); if (ac) ac.onclick = openActive;
+  root.querySelectorAll("[data-open]").forEach((el) => el.onclick = () => { trackingId = el.dataset.open; renderTrack(); });
   $("actTab").onclick = renderActivity;
   $("moreTab").onclick = () => alert("Profile, aircraft & billing — coming after MVP sign-off.");
 }
@@ -297,17 +270,12 @@ function renderHome() {
 let draft = {};
 function openFlow(key) {
   const f = FLOWS[key]; const m = memberProfile();
-  draft = { type: key, cars: "0", services: [], fuel: "None", slot: null };
+  draft = { type: key, cars: "0", services: [], fuel: "None", slot: null, tip: null };
   let h = `<div class="back" id="backBtn">‹ Back</div>
     <div class="h-title">${f.title}</div>
-    <div class="h-sub">${m.tail} · ${m.aircraftType || ""} · ${f.destSub}</div>`;
+    <div class="h-sub">${m.tail} · ${m.aircraftType || ""} · ${f.sub}</div>`;
 
-  if (f.quick) {
-    h += `<div class="section-label">When</div>
-      <div class="opt sel"><div class="ico">${key === "return" ? "↩" : "🛬"}</div>
-      <div class="body"><b>${key === "return" ? "Now" : "On final approach"}</b>
-      <span>${key === "return" ? "Reposition to the ramp" : "Operator meets you in ~15 min"}</span></div><div class="check"></div></div>`;
-  } else {
+  if (f.slotKind) {
     const slots = genSlots(f.slotKind);
     draft.slot = slots[0];
     h += `<div class="section-label">${f.timeLabel}</div><div class="chips" id="slotChips">` +
@@ -325,12 +293,19 @@ function openFlow(key) {
       `</div>`;
   }
   if (f.showServices) {
-    const lbl = key === "announce" || key === "arrive" ? "Request services before parking" : "Services";
-    h += `<div class="section-label">${lbl}</div><div class="chips" id="svcChips">` +
+    h += `<div class="section-label">Additional services</div><div class="chips" id="svcChips">` +
       ["Lav service", "Potable water", "Ground power", "Rental car", "Catering"].map((s) => `<div class="chip" data-svc="${s}">${s}</div>`).join("") +
       `</div>`;
   }
-  h += `<button class="primary dark" style="margin:26px 20px 0" id="submitBtn">${f.cta}</button>`;
+  if (f.showTip) {
+    const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"], ["0", "No tip"]];
+    h += `<div class="section-label">Add a tip — optional</div>
+      <div class="tip-grid" id="tipGrid">` +
+      tips.map(([v, l]) => `<div class="tip-amt ${v === "0" ? "sel" : ""}" data-tip="${v}">${l}</div>`).join("") +
+      `</div><div class="note">100% of tips go to your lineman. Recorded only — no card is charged in this demo.</div>`;
+  }
+
+  h += `<div class="submitbar"><button class="primary" id="submitBtn">${f.cta}</button></div>`;
   root.innerHTML = h; go("request");
 
   $("backBtn").onclick = renderHome;
@@ -340,6 +315,7 @@ function openFlow(key) {
   bindMulti("svcChips", "svc", () => {
     draft.services = [...root.querySelectorAll('#svcChips .chip.sel')].map((c) => c.dataset.svc);
   });
+  bindTip();
   $("submitBtn").onclick = submitFlow;
 }
 function bindOne(id, attr, set) {
@@ -353,6 +329,21 @@ function bindMulti(id, attr, set) {
   const wrap = $(id); if (!wrap) return;
   wrap.querySelectorAll(".chip").forEach((c) => c.onclick = () => { c.classList.toggle("sel"); set(); });
 }
+function bindTip() {
+  const wrap = $("tipGrid"); if (!wrap) return;
+  wrap.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
+    const v = el.dataset.tip;
+    let amt;
+    if (v === "0") amt = null;
+    else if (v === "custom") {
+      amt = parseInt(prompt("Tip amount ($)", "30") || "0", 10);
+      if (!amt || amt < 1) amt = null;
+    } else amt = parseInt(v, 10);
+    draft.tip = amt;
+    wrap.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
+    el.classList.add("sel");
+  });
+}
 
 async function submitFlow() {
   const f = FLOWS[draft.type]; const m = memberProfile();
@@ -360,16 +351,10 @@ async function submitFlow() {
     type: draft.type, customerUid: session.uid, customerName: m.name, customerRole: m.role,
     tail: m.tail, aircraftType: m.aircraftType || "", home: m.home,
     slot: draft.slot, cars: draft.cars, fuel: draft.fuel, services: draft.services,
-    spot: f.spot || m.home, version, status: "requested", stepIndex: 0,
-    operatorUid: null, operatorName: null, tip: null, rating: null,
+    spot: f.spot || m.home, status: "requested", stepIndex: 0,
+    operatorUid: null, operatorName: null,
+    tip: draft.tip ? { amount: draft.tip, mock: true } : null, rating: null,
   };
-  if (f.scheduled) {
-    base.scheduled = true;
-    await backend.createRequest(base);
-    banner("🗓️", "Arrival scheduled", "A spot will be ready for " + (draft.slot || "your arrival") + ".");
-    renderHome();
-    return;
-  }
   base.steps = f.buildSteps(draft);
   const id = await backend.createRequest(base);
   trackingId = id;
@@ -390,7 +375,8 @@ function renderTrack() {
 
   const idx = r.stepIndex || 0;
   root.innerHTML = `
-    <div class="ahead"><div class="brand">JAY'S <b>VALET</b></div>
+    <div class="back" id="backBtn">‹ Back</div>
+    <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>VALET</b></div>
       <span class="badge inprog">● In progress</span></div>
     <div class="track-hero">
       <div class="small">${f.trackTitle}</div>
@@ -403,17 +389,42 @@ function renderTrack() {
       return `<div class="step ${cls}"><div class="node">${node}</div><div class="rail"></div>
         <div class="lbl"><b>${s[0]}</b><span>${s[1]}</span></div></div>`;
     }).join("")}</div>
-    ${r.operatorName ? `<div class="crew-row"><div class="pic">${initials(r.operatorName)}</div>
-      <div class="info"><b>${r.operatorName}</b><span>Line operator · Jay's Air Center</span></div>
-      <a class="call" href="tel:+19497555000">✆</a></div>` : ""}
-    <button class="ghost" id="backBtn" style="margin-top:18px">‹ Back to home</button>`;
+    ${r.operatorName
+      ? `<div class="section-label">Assigned lineman</div>
+         <div class="crew-row"><div class="pic">${initials(r.operatorName)}</div>
+         <div class="info"><b>${r.operatorName}</b><span>Lineman · Jay's Air Center</span></div>
+         <a class="call" href="tel:+19497555000">✆</a></div>`
+      : `<div class="section-label">Assigned lineman</div>
+         <div class="crew-row"><div class="pic">…</div>
+         <div class="info"><b>Awaiting assignment</b><span>A lineman will be assigned shortly</span></div></div>`}
+    ${r.tip
+      ? `<div class="note" style="text-align:center">♥ $${r.tip.amount} tip added for ${r.operatorName || "your lineman"}.</div>`
+      : (r.operatorName
+        ? `<div class="section-label">Say thanks — tip your lineman</div>
+           <div class="tip-grid" id="trackTip">${[["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]].map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("")}</div>
+           <div class="note">100% goes to ${r.operatorName}. Recorded only — no card is charged in this demo.</div>`
+        : "")}
+    <button class="ghost" id="homeBtn" style="margin-top:18px">Back to home</button>`;
   $("backBtn").onclick = renderHome;
+  $("homeBtn").onclick = renderHome;
+  const tt = $("trackTip");
+  if (tt) tt.querySelectorAll(".tip-amt").forEach((el) => el.onclick = async () => {
+    let amt;
+    if (el.dataset.tip === "custom") { amt = parseInt(prompt("Tip amount ($)", "30") || "0", 10); if (!amt || amt < 1) return; }
+    else amt = parseInt(el.dataset.tip, 10);
+    tt.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
+    el.classList.add("sel");
+    try { await backend.setTipRating(r.id, { tip: { amount: amt, mock: true } }); } catch (_) {}
+    banner("♥", "Thanks sent", "$" + amt + " tip recorded for " + r.operatorName + ".");
+    renderTrack();
+  });
 }
 
 function renderReady(r) {
   go("ready");
   const f = FLOWS[r.type];
   root.innerHTML = `
+    <div class="back" id="backBtn">‹ Back</div>
     <div class="center-pad">
       <div class="seal">${f.finalKind === "departure" ? "✈" : "🅿️"}</div>
       <h2>${f.completeTitle}</h2>
@@ -425,59 +436,56 @@ function renderReady(r) {
       </div>
       <button class="primary" style="width:auto;margin:26px 20px 0;align-self:stretch" id="contBtn">Continue</button>
     </div>`;
-  $("contBtn").onclick = () => (version === "A" && !r.tip) ? renderTip(r) : renderDone(r, false);
+  $("backBtn").onclick = renderHome;
+  $("contBtn").onclick = () => renderDone(r);
 }
 
-function renderTip(r) {
-  go("tip");
-  const amounts = [10, 20, 40, 60];
-  let sel = 20;
+// Post-completion "say thanks" page: tip the assigned lineman after the work is
+// done, plus a star rating. If a tip was already added at request time we just
+// acknowledge it.
+function renderDone(r) {
+  go("done");
+  const alreadyTipped = !!r.tip;
+  const linemanName = r.operatorName || "your lineman";
+  let stars = r.rating || 0;
+  let tipAmt = null; // newly selected post-completion tip
+  const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"], ["0", "No tip"]];
   root.innerHTML = `
     <div class="back" id="backBtn">‹ Back</div>
-    <div class="center-pad" style="justify-content:flex-start;padding-top:14px">
-      <div class="seal gold">♥</div>
-      <h2>Thank your operator</h2>
-      <p>${r.operatorName || "Your operator"} handled your aircraft. 100% of tips go to the line operator.</p>
-      <div class="tip-grid" id="tipGrid">
-        ${amounts.map((a) => `<div class="tip-amt ${a === 20 ? "sel" : ""}" data-amt="${a}">$${a}</div>`).join("")}
-        <div class="tip-amt" data-amt="custom">Custom<small>Enter amount</small></div>
-      </div>
-      <button class="primary" style="width:auto;margin:20px 20px 0;align-self:stretch" id="tipBtn">Send $20</button>
-      <button class="linkbtn" style="margin-top:16px" id="noTip">Not this time</button>
-      <div class="mock-note">MVP: tip is recorded but no real payment is processed yet. Stripe payout setup is a separate decision — see the briefing for George.</div>
+    <div class="center-pad" style="justify-content:flex-start;padding-top:30px">
+      <div class="seal ${alreadyTipped ? "gold" : ""}">${alreadyTipped ? "♥" : "🙏"}</div>
+      <h2>${alreadyTipped ? "Thank you!" : "Say thanks"}</h2>
+      <p>${alreadyTipped
+        ? "$" + r.tip.amount + " tip recorded for " + linemanName + "."
+        : linemanName + " handled your aircraft. Add a tip to say thanks — 100% goes to them."}</p>
+      ${r.operatorName ? `<div class="crew-row" style="width:100%;margin-top:18px"><div class="pic">${initials(r.operatorName)}</div>
+        <div class="info"><b>${r.operatorName}</b><span>Lineman · Jay's Air Center</span></div></div>` : ""}
+      ${alreadyTipped ? "" : `<div class="section-label" style="width:100%;text-align:left;padding-left:0">Add a tip — optional</div>
+        <div class="tip-grid" id="tipGrid">${tips.map(([v, l]) => `<div class="tip-amt ${v === "0" ? "sel" : ""}" data-tip="${v}">${l}</div>`).join("")}</div>`}
+      <div class="section-label" style="width:100%;text-align:left;padding-left:0">Rate your service</div>
+      <div class="stars" id="stars">${[1, 2, 3, 4, 5].map((n) => `<span class="${n <= stars ? "lit" : ""}">★</span>`).join("")}</div>
+      <button class="primary" style="width:auto;margin:28px 20px 0;align-self:stretch" id="homeBtn">${alreadyTipped ? "Back to home" : "Submit"}</button>
     </div>`;
-  const upd = () => $("tipBtn").textContent = sel ? "Send $" + sel : "Enter an amount";
-  root.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
-    root.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
-    el.classList.add("sel");
-    sel = el.dataset.amt === "custom" ? parseInt(prompt("Tip amount ($)", "30") || "0", 10) : parseInt(el.dataset.amt, 10);
-    upd();
-  });
   $("backBtn").onclick = () => renderReady(r);
-  $("noTip").onclick = () => renderDone(r, false);
-  $("tipBtn").onclick = async () => {
-    await backend.setTipRating(r.id, { tip: { amount: sel, mock: true } });
-    banner("♥", "Tip sent", "$" + sel + " recorded for " + (r.operatorName || "your operator") + ". Thank you!");
-    renderDone({ ...r, tip: { amount: sel } }, true);
-  };
-}
-
-function renderDone(r, tipped) {
-  go("done");
-  let stars = 0;
-  root.innerHTML = `
-    <div class="center-pad">
-      <div class="seal ${tipped ? "gold" : ""}">${tipped ? "♥" : "✈"}</div>
-      <h2>${tipped ? "Thank you!" : "How was your service?"}</h2>
-      <p>${tipped ? "$" + r.tip.amount + " recorded for " + (r.operatorName || "your operator") + "."
-        : "Your feedback helps the line operator."}</p>
-      <div class="stars" id="stars">${[1, 2, 3, 4, 5].map(() => "<span>★</span>").join("")}</div>
-      <button class="primary" style="width:auto;margin:28px 20px 0;align-self:stretch" id="homeBtn">Back to home</button>
-    </div>`;
   const sp = [...root.querySelectorAll("#stars span")];
   sp.forEach((s, i) => s.onclick = () => { stars = i + 1; sp.forEach((x, j) => x.classList.toggle("lit", j < stars)); });
+  const tg = $("tipGrid");
+  if (tg) tg.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
+    const v = el.dataset.tip;
+    if (v === "0") tipAmt = null;
+    else if (v === "custom") { const a = parseInt(prompt("Tip amount ($)", "30") || "0", 10); tipAmt = (!a || a < 1) ? null : a; }
+    else tipAmt = parseInt(v, 10);
+    tg.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
+    el.classList.add("sel");
+  });
   $("homeBtn").onclick = async () => {
-    if (stars) { try { await backend.setTipRating(r.id, { rating: stars }); } catch (_) {} }
+    const patch = {};
+    if (stars) patch.rating = stars;
+    if (tipAmt) patch.tip = { amount: tipAmt, mock: true };
+    if (Object.keys(patch).length) {
+      try { await backend.setTipRating(r.id, patch); } catch (_) {}
+      if (patch.tip) banner("♥", "Thanks sent", "$" + tipAmt + " tip recorded for " + linemanName + ".");
+    }
     trackingId = null; renderHome();
   };
 }
@@ -487,8 +495,8 @@ function renderActivity() {
   go("activity");
   const done = myRequests.filter((r) => r.status === "complete");
   root.innerHTML = `
-    <div class="h-title">Activity</div><div class="h-sub">Every staging, arrival and return.</div>
-    ${done.length ? done.map((r) => `<div class="act"><div class="dot">${stepIcon(FLOWS[r.type]?.completeTitle || "")}</div>
+    <div class="h-title">Activity</div><div class="h-sub">Every parking, staging and departure.</div>
+    ${done.length ? done.map((r) => `<div class="act" data-open="${r.id}" style="cursor:pointer"><div class="dot">${stepIcon(FLOWS[r.type]?.completeTitle || "")}</div>
       <div class="t"><b>${FLOWS[r.type]?.completeTitle || "Completed"}</b>
       <span>${r.spot || r.home || ""} · ${r.operatorName || "Jay's line"}${r.tip ? " · tipped $" + r.tip.amount : ""}${r.rating ? " · " + r.rating + "★" : ""}</span></div>
       <div class="when">${fmtDate(r.updatedAt)}</div></div>`).join("")
@@ -498,28 +506,94 @@ function renderActivity() {
       <button class="active"><span class="ti">≣</span>Activity</button>
       <button id="moreTab2"><span class="ti">☰</span>More</button>
     </div>`;
+  root.querySelectorAll("[data-open]").forEach((el) => el.onclick = () => { trackingId = el.dataset.open; renderTrack(); });
   $("homeTab").onclick = renderHome;
   $("moreTab2").onclick = () => alert("Profile, aircraft & billing — coming after MVP sign-off.");
 }
 
-/* ----------------------------- operator ------------------------------- */
-function renderOperator() {
-  go("operator");
+/* ------------------------------ lineman ------------------------------- */
+function renderLineman() {
+  go("lineman");
   const open = queue.filter((r) => r.status !== "complete");
   const active = open.filter((r) => !r.scheduled);
-  const inbound = open.filter((r) => r.scheduled);
   root.innerHTML = `
-    <div class="ahead"><div class="brand">JAY'S <b>VALET</b> · OPS</div><div class="avatar">${session.avatar || "OP"}</div></div>
+    <div class="ahead"><div class="brand">JAY'S <b>VALET</b> · LINE</div><div class="avatar">${session.avatar || "LN"}</div></div>
     <div class="h-title">Line queue</div>
-    <div class="h-sub">${session.name} · line operator · ${active.length} active · ${inbound.length} inbound</div>
+    <div class="h-sub">${session.name} · lineman · ${active.length} active request${active.length === 1 ? "" : "s"}</div>
     ${active.length ? active.map(opCard).join("") : `<div class="empty">No active requests. New requests appear here in real time.</div>`}
-    ${inbound.length ? `<div class="section-label">Inbound (scheduled)</div>` + inbound.map((r) => `
-      <div class="crew-card dim"><div class="top"><div><div class="tail">${r.tail}</div>
-      <div class="req">Arrival · ETA ${r.slot || "—"} · ${r.customerName}</div></div>
-      <span class="badge parked">● Inbound</span></div>
-      <div class="det">${(r.services || []).map((s) => `<span class="tag">${s}</span>`).join("")}<span class="tag">→ ${r.home}</span></div></div>`).join("") : ""}
     <div class="note" style="padding:22px 24px 0">New customer requests stream in live. Advancing a job notifies the customer instantly.</div>`;
   root.querySelectorAll("[data-adv]").forEach((b) => b.onclick = () => opAdvance(b.dataset.adv));
+}
+
+/* ------------------------------- owner -------------------------------- */
+// FBO operator oversight. Read-only board of every request across the ramp —
+// the owner does not place parking/staging requests, they monitor the crew.
+function renderOwner() {
+  go("owner");
+  const open = queue.filter((r) => r.status !== "complete");
+  const done = queue.filter((r) => r.status === "complete");
+  root.innerHTML = `
+    <div class="ahead"><div class="brand">JAY'S <b>VALET</b> · OVERSIGHT</div>
+      <div style="display:flex;align-items:center;gap:8px"><span class="role-tag">owner</span><div class="avatar">${session.avatar || "GM"}</div></div></div>
+    <div class="h-title">${session.greet || "Line activity"}</div>
+    <div class="h-sub">${session.name} · FBO operator · ${open.length} open request${open.length === 1 ? "" : "s"} across the ramp</div>
+    ${open.length ? open.map(ownerCard).join("") : `<div class="empty">No open requests right now.</div>`}
+    ${done.length ? `<div class="section-label">Completed today</div>${done.slice(0, 5).map(ownerCard).join("")}` : ""}
+    <div class="note" style="padding:22px 24px 0">Every request is logged and billable. Tap any card to see the full job detail and assigned lineman.</div>`;
+  root.querySelectorAll("[data-detail]").forEach((el) => el.onclick = () => {
+    const r = queue.find((x) => x.id === el.dataset.detail);
+    if (r) renderOwnerDetail(r);
+  });
+}
+function ownerCard(r) {
+  const f = FLOWS[r.type] || {};
+  let badge;
+  if (r.status === "requested") badge = "● New";
+  else if (r.status === "complete") badge = "● Complete";
+  else badge = "● " + ((r.steps || [])[r.stepIndex || 0]?.[0] || "In progress");
+  const details = [
+    r.cars && r.cars !== "0" ? `${r.cars} ${r.cars === "1" ? "car" : "cars"} to valet` : null,
+    r.fuel && r.fuel !== "None" ? r.fuel : null,
+    ...(r.services || []),
+    r.operatorName ? `Lineman: ${r.operatorName}` : "Unassigned",
+    r.tip ? `♥ $${r.tip.amount} tip` : null,
+    `→ ${r.spot || r.home}`,
+  ].filter(Boolean);
+  const badgeCls = r.status === "requested" ? "staged" : (r.status === "complete" ? "parked" : "inprog");
+  return `<div class="crew-card ${r.type === "stage" ? "stage" : ""}" data-detail="${r.id}" style="cursor:pointer">
+      <div class="top"><div>
+      <div class="tail">${r.tail}</div>
+      <div class="req">${f.title || r.type} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>
+      <span class="badge ${badgeCls}">${badge}</span></div>
+      <div class="det">${details.map((d) => `<span class="tag">${d}</span>`).join("")}</div></div>`;
+}
+function renderOwnerDetail(r) {
+  go("ownerDetail");
+  const f = FLOWS[r.type] || {}; const steps = r.steps || []; const idx = r.stepIndex || 0;
+  root.innerHTML = `
+    <div class="back" id="backBtn">‹ Back to oversight</div>
+    <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>VALET</b> · OVERSIGHT</div>
+      <span class="badge ${r.status === "complete" ? "parked" : "inprog"}">● ${r.status === "complete" ? "Complete" : "In progress"}</span></div>
+    <div class="track-hero">
+      <div class="small">${f.title || r.type} · ${r.customerName}</div>
+      <div class="big">${r.tail}</div>
+      <div class="spot">${r.spot || r.home}${r.slot ? " · " + r.slot : ""}</div>
+    </div>
+    <div class="steps">${steps.map((s, i) => {
+      const cls = i < idx ? "done" : (i === idx && r.status !== "complete" ? "active" : (r.status === "complete" ? "done" : ""));
+      const node = (i < idx || r.status === "complete") ? "✓" : (i + 1);
+      return `<div class="step ${cls}"><div class="node">${node}</div><div class="rail"></div>
+        <div class="lbl"><b>${s[0]}</b><span>${s[1]}</span></div></div>`;
+    }).join("")}</div>
+    <div class="section-label">Assigned lineman</div>
+    ${r.operatorName
+      ? `<div class="crew-row"><div class="pic">${initials(r.operatorName)}</div>
+         <div class="info"><b>${r.operatorName}</b><span>Lineman · Jay's Air Center</span></div></div>`
+      : `<div class="crew-row"><div class="pic">…</div>
+         <div class="info"><b>Unassigned</b><span>No lineman has accepted this job yet</span></div></div>`}
+    ${r.tip ? `<div class="note">♥ $${r.tip.amount} tip recorded for the lineman.</div>` : ""}
+    ${r.rating ? `<div class="note">Customer rating: ${r.rating}★</div>` : ""}`;
+  $("backBtn").onclick = renderOwner;
 }
 function opCard(r) {
   const steps = r.steps || [];
@@ -530,15 +604,16 @@ function opCard(r) {
   else if (idx >= steps.length - 1) { btnLabel = "Complete ✓"; badge = "● Finishing"; }
   else { btnLabel = "Advance: " + (steps[idx + 1]?.[0] || "next"); badge = "● " + (steps[idx]?.[0] || "In progress"); }
   const details = [
-    r.cars && r.cars !== "0" ? `${r.cars} cars to valet` : null,
+    r.cars && r.cars !== "0" ? `${r.cars} ${r.cars === "1" ? "car" : "cars"} to valet` : null,
     r.fuel && r.fuel !== "None" ? r.fuel : null,
     ...(r.services || []),
+    r.tip ? `♥ $${r.tip.amount} tip` : null,
     `→ ${r.spot || r.home}`,
   ].filter(Boolean);
   return `<div class="crew-card"><div class="top"><div>
       <div class="tail">${r.tail}</div>
       <div class="req">${f.title || r.type} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>
-      <span class="badge inprog">${badge}</span></div>
+      <span class="badge ${r.status === "requested" ? "staged" : "inprog"}">${badge}</span></div>
       <div class="det">${details.map((d) => `<span class="tag">${d}</span>`).join("")}</div>
       <div class="crew-act">
         <button class="sec" onclick="alert('Reassign / decline — coming after MVP.')">Reassign</button>
@@ -549,7 +624,7 @@ async function opAdvance(id) {
   const r = queue.find((x) => x.id === id); if (!r) return;
   const steps = r.steps || []; const idx = r.stepIndex || 0;
   if (r.status === "requested") {
-    const next = steps[1] || ["Operator assigned", ""];
+    const next = steps[1] || ["Lineman assigned", ""];
     return backend.updateRequest(id, {
       status: "inprogress", stepIndex: 1,
       operatorUid: session.uid, operatorName: session.name,
