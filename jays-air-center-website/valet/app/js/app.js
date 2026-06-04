@@ -298,10 +298,10 @@ function openFlow(key) {
       `</div>`;
   }
   if (f.showTip) {
-    const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"], ["0", "No tip"]];
+    const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
     h += `<div class="section-label">Add a tip — optional</div>
       <div class="tip-grid" id="tipGrid">` +
-      tips.map(([v, l]) => `<div class="tip-amt ${v === "0" ? "sel" : ""}" data-tip="${v}">${l}</div>`).join("") +
+      tips.map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("") +
       `</div><div class="note">100% of tips go to your lineman. Recorded only — no card is charged in this demo.</div>`;
   }
 
@@ -332,16 +332,18 @@ function bindMulti(id, attr, set) {
 function bindTip() {
   const wrap = $("tipGrid"); if (!wrap) return;
   wrap.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
+    if (el.classList.contains("sel")) { // tap again to opt out — no tip
+      el.classList.remove("sel"); draft.tip = null; return;
+    }
     const v = el.dataset.tip;
     let amt;
-    if (v === "0") amt = null;
-    else if (v === "custom") {
+    if (v === "custom") {
       amt = parseInt(prompt("Tip amount ($)", "30") || "0", 10);
       if (!amt || amt < 1) amt = null;
     } else amt = parseInt(v, 10);
     draft.tip = amt;
     wrap.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
-    el.classList.add("sel");
+    if (amt) el.classList.add("sel");
   });
 }
 
@@ -449,7 +451,7 @@ function renderDone(r) {
   const linemanName = r.operatorName || "your lineman";
   let stars = r.rating || 0;
   let tipAmt = null; // newly selected post-completion tip
-  const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"], ["0", "No tip"]];
+  const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
   root.innerHTML = `
     <div class="back" id="backBtn">‹ Back</div>
     <div class="center-pad" style="justify-content:flex-start;padding-top:30px">
@@ -461,7 +463,7 @@ function renderDone(r) {
       ${r.operatorName ? `<div class="crew-row" style="width:100%;margin-top:18px"><div class="pic">${initials(r.operatorName)}</div>
         <div class="info"><b>${r.operatorName}</b><span>Lineman · Jay's Air Center</span></div></div>` : ""}
       ${alreadyTipped ? "" : `<div class="section-label" style="width:100%;text-align:left;padding-left:0">Add a tip — optional</div>
-        <div class="tip-grid" id="tipGrid">${tips.map(([v, l]) => `<div class="tip-amt ${v === "0" ? "sel" : ""}" data-tip="${v}">${l}</div>`).join("")}</div>`}
+        <div class="tip-grid" id="tipGrid">${tips.map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("")}</div>`}
       <div class="section-label" style="width:100%;text-align:left;padding-left:0">Rate your service</div>
       <div class="stars" id="stars">${[1, 2, 3, 4, 5].map((n) => `<span class="${n <= stars ? "lit" : ""}">★</span>`).join("")}</div>
       <button class="primary" style="width:auto;margin:28px 20px 0;align-self:stretch" id="homeBtn">${alreadyTipped ? "Back to home" : "Submit"}</button>
@@ -471,12 +473,14 @@ function renderDone(r) {
   sp.forEach((s, i) => s.onclick = () => { stars = i + 1; sp.forEach((x, j) => x.classList.toggle("lit", j < stars)); });
   const tg = $("tipGrid");
   if (tg) tg.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
+    if (el.classList.contains("sel")) { // tap again to opt out — no tip
+      el.classList.remove("sel"); tipAmt = null; return;
+    }
     const v = el.dataset.tip;
-    if (v === "0") tipAmt = null;
-    else if (v === "custom") { const a = parseInt(prompt("Tip amount ($)", "30") || "0", 10); tipAmt = (!a || a < 1) ? null : a; }
+    if (v === "custom") { const a = parseInt(prompt("Tip amount ($)", "30") || "0", 10); tipAmt = (!a || a < 1) ? null : a; }
     else tipAmt = parseInt(v, 10);
     tg.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
-    el.classList.add("sel");
+    if (tipAmt) el.classList.add("sel");
   });
   $("homeBtn").onclick = async () => {
     const patch = {};
