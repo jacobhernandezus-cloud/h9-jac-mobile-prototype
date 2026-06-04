@@ -532,11 +532,59 @@ function renderOwner() {
   go("owner");
   const open = queue.filter((r) => r.status !== "complete");
   const done = queue.filter((r) => r.status === "complete");
+  const inProgress = queue.filter((r) => r.status === "inprogress");
+  const unassigned = open.filter((r) => !r.operatorName);
+
+  // Billing snapshot — every fuel order, service and valeted car is a billable
+  // line item; tips are recorded separately and pass through 100% to the crew.
+  const billableItems = queue.reduce((n, r) => n
+    + (r.fuel && r.fuel !== "None" ? 1 : 0)
+    + (r.services ? r.services.length : 0)
+    + (r.cars && r.cars !== "0" ? parseInt(r.cars, 10) || 0 : 0), 0);
+  const tipsTotal = queue.reduce((n, r) => n + (r.tip ? (r.tip.amount || 0) : 0), 0);
+
+  // Line crew & workload — group active jobs by assigned lineman.
+  const crew = new Map();
+  inProgress.forEach((r) => {
+    if (!r.operatorName) return;
+    if (!crew.has(r.operatorName)) crew.set(r.operatorName, []);
+    crew.get(r.operatorName).push(r);
+  });
+
+  const kpis = [
+    ["Open", open.length, "across the ramp"],
+    ["In progress", inProgress.length, "crew working now"],
+    ["Unassigned", unassigned.length, "awaiting a lineman", unassigned.length ? "alert" : ""],
+    ["Done today", done.length, "completed jobs"],
+  ];
+
   root.innerHTML = `
     <div class="ahead"><div class="brand">JAY'S <b>VALET</b> · OVERSIGHT</div>
       <div style="display:flex;align-items:center;gap:8px"><span class="role-tag">owner</span><div class="avatar">${session.avatar || "GM"}</div></div></div>
     <div class="h-title">${session.greet || "Line activity"}</div>
-    <div class="h-sub">${session.name} · FBO operator · ${open.length} open request${open.length === 1 ? "" : "s"} across the ramp</div>
+    <div class="h-sub">${session.name} · FBO operator · live across the ramp</div>
+
+    <div class="kpi-grid">${kpis.map(([label, n, sub, cls]) => `
+      <div class="kpi ${cls || ""}"><div class="kpi-n">${n}</div>
+        <div class="kpi-l">${label}</div><div class="kpi-s">${sub}</div></div>`).join("")}</div>
+
+    ${unassigned.length ? `<div class="section-label alert-label">Needs attention · ${unassigned.length}</div>
+      ${unassigned.map(ownerCard).join("")}` : `<div class="ok-banner">✓ Every request has a lineman assigned.</div>`}
+
+    <div class="section-label">Line crew & workload</div>
+    ${crew.size ? [...crew.entries()].map(([name, jobs]) => `
+      <div class="crew-row crew-load"><div class="pic">${initials(name)}</div>
+        <div class="info"><b>${name}</b><span>Lineman · Jay's Air Center</span></div>
+        <div class="load-count"><b>${jobs.length}</b><span>active</span></div></div>`).join("")
+      : `<div class="empty">No active jobs assigned right now.</div>`}
+
+    <div class="section-label">Billing & tips today</div>
+    <div class="bill-grid">
+      <div class="bill"><div class="bill-n">${billableItems}</div><div class="bill-l">Billable line items</div></div>
+      <div class="bill"><div class="bill-n">$${tipsTotal}</div><div class="bill-l">Tips to crew</div></div>
+    </div>
+
+    <div class="section-label">All requests</div>
     ${open.length ? open.map(ownerCard).join("") : `<div class="empty">No open requests right now.</div>`}
     ${done.length ? `<div class="section-label">Completed today</div>${done.slice(0, 5).map(ownerCard).join("")}` : ""}
     <div class="note" style="padding:22px 24px 0">Every request is logged and billable. Tap any card to see the full job detail and assigned lineman.</div>`;
