@@ -201,7 +201,10 @@ body{
 .agree input{margin-top:2px}
 
 /* Tab bar */
-.tabbar{flex:none;height:74px;background:rgba(248,246,243,.95);backdrop-filter:blur(10px);border-top:1px solid var(--soft-gray);display:flex;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.tabbar{flex:none;height:74px;background:rgba(248,246,243,.95);backdrop-filter:blur(10px);border-top:1px solid var(--soft-gray);display:flex;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  /* Pin to the frame bottom: auto margin absorbs leftover space on short screens,
+     sticky keeps it visible while long content scrolls beneath */
+  margin-top:auto;position:sticky;bottom:0;z-index:10}
 .tabbar button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink-faint);font-size:10.5px;font-weight:500;cursor:pointer;font-family:'DM Sans'}
 .tabbar button .ti{font-size:21px}
 .tabbar button.active{color:var(--deep-navy)}
