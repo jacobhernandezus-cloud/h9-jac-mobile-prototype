@@ -24,6 +24,7 @@ const FLOWS = {
   park: {
     title: "Schedule your arrival",
     sub: "Tell us when you land at KSNA — a lineman will meet your aircraft.",
+    slotKind: "arrive", timeLabel: "arrival",
     showFuel: true, showTip: true,
     cta: "Schedule arrival",
     trackTitle: "Lineman meeting your aircraft", finalKind: "arrival",
@@ -267,11 +268,15 @@ function openFlow(key) {
     <div class="h-sub">${m.tail} · ${m.aircraftType || ""} · ${f.sub}</div>`;
 
   if (f.slotKind) {
-    const slots = genSlots(f.slotKind);
-    draft.slot = slots[0];
-    h += `<div class="section-label">${f.timeLabel}</div><div class="chips" id="slotChips">` +
-      slots.map((s, i) => `<div class="chip ${i === 0 ? "sel" : ""}" data-slot="${s}">${s}</div>`).join("") +
-      `</div><div class="note">${f.timeNote}</div>`;
+    const todayISO = localISODate(new Date());
+    draft.slotDate = todayISO;
+    draft.slotTime = defaultSlotTime(f.slotKind);
+    composeSlot();
+    h += `<div class="section-label">Scheduled ${f.timeLabel} date</div>
+      <div class="field" style="margin-top:2px"><input type="date" id="slotDate" value="${todayISO}" min="${todayISO}"></div>
+      <div class="section-label">Scheduled ${f.timeLabel} time</div>
+      <div class="field" style="margin-top:2px"><select id="slotTime">${timeOptions(draft.slotTime)}</select></div>
+      ${f.timeNote ? `<div class="note">${f.timeNote}</div>` : ""}`;
   }
   if (f.showCars) {
     h += `<div class="section-label">Cars to valet — parking in the staging area</div><div class="chips" id="carChips">` +
@@ -295,7 +300,8 @@ function openFlow(key) {
   root.innerHTML = h; go("request");
 
   $("backBtn").onclick = renderHome;
-  bindOne("slotChips", "slot", (v) => draft.slot = v);
+  const sd = $("slotDate"); if (sd) sd.onchange = () => { draft.slotDate = sd.value || sd.min; composeSlot(); };
+  const st = $("slotTime"); if (st) st.onchange = () => { draft.slotTime = st.value; composeSlot(); };
   bindOne("carChips", "car", (v) => draft.cars = v);
   bindOne("fuelChips", "fuel", (v) => draft.fuel = v);
   bindTip();
@@ -350,7 +356,8 @@ async function submitFlow() {
   const base = {
     type: draft.type, customerUid: session.uid, customerName: m.name, customerRole: m.role,
     tail: m.tail, aircraftType: m.aircraftType || "", home: m.home,
-    slot: draft.slot, cars: draft.cars, fuel: draft.fuel, services: draft.services,
+    slot: draft.slot, slotDate: draft.slotDate || null, slotTime: draft.slotTime || null,
+    cars: draft.cars, fuel: draft.fuel, services: draft.services,
     spot: f.spot || m.home, status: "requested", stepIndex: 0,
     operatorUid: null, operatorName: null,
     tip: draft.tip ? { amount: draft.tip, mock: true } : null, rating: null,
@@ -716,13 +723,40 @@ function fmtDate(ts) {
   const d = ts?.toDate ? ts.toDate() : new Date(ts || Date.now());
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
-function ceil30(d) { const ms = 30 * 60000; return new Date(Math.ceil(d.getTime() / ms) * ms); }
-function genSlots(kind) {
-  const now = new Date(); const out = [];
-  let start = kind === "depart" ? ceil30(new Date(now.getTime() + 120 * 60000)) : ceil30(new Date(now.getTime() + 30 * 60000));
-  const n = kind === "depart" ? 5 : 4;
-  for (let i = 0; i < n; i++) out.push(fmtTime(new Date(start.getTime() + i * 30 * 60000)));
-  return out;
+/* Scheduling: ramp hours are 6:00 AM – 10:00 PM in 15-minute slots. */
+const SLOT_OPEN = 6 * 60, SLOT_CLOSE = 22 * 60, SLOT_STEP = 15;
+function fmtMins(mins) {
+  let h = Math.floor(mins / 60); const m = mins % 60;
+  const ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12;
+  return h + ":" + String(m).padStart(2, "0") + " " + ap;
+}
+function timeOptions(selected) {
+  const out = [];
+  for (let m = SLOT_OPEN; m <= SLOT_CLOSE; m += SLOT_STEP) {
+    const label = fmtMins(m);
+    out.push(`<option value="${label}"${label === selected ? " selected" : ""}>${label}</option>`);
+  }
+  return out.join("");
+}
+// Default to the next quarter-hour after the flow's lead time (2h for
+// departures, 30m for arrivals), clamped to ramp hours.
+function defaultSlotTime(kind) {
+  const lead = kind === "depart" ? 120 : 30;
+  const t = new Date(Date.now() + lead * 60000);
+  let mins = Math.ceil((t.getHours() * 60 + t.getMinutes()) / SLOT_STEP) * SLOT_STEP;
+  if (mins < SLOT_OPEN || mins > SLOT_CLOSE) mins = SLOT_OPEN; // after close → first slot next day; pick the date above
+  return fmtMins(mins);
+}
+function localISODate(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+// r.slot stays a display string ("Jun 12 · 1:15 PM") so every existing render
+// site (track hero, queue cards, owner detail) keeps working unchanged.
+function composeSlot() {
+  if (!draft.slotDate || !draft.slotTime) { draft.slot = null; return; }
+  const [y, m, d] = draft.slotDate.split("-").map(Number);
+  const label = new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  draft.slot = label + " · " + draft.slotTime;
 }
 function friendlyAuthErr(e) {
   const m = (e && e.message) || "";
