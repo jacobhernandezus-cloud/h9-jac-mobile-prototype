@@ -1,6 +1,6 @@
 {
-  "name": "Jay's Valet",
-  "short_name": "Jay's Valet",
+  "name": "Jay's Ramp Valet",
+  "short_name": "Ramp Valet",
   "description": "Summon your aircraft like a Tesla — request ramp staging, schedule arrivals, track every step.",
   "start_url": "./",
   "scope": "./",

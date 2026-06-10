@@ -68,7 +68,7 @@ const FLOWS = {
   backend = await getBackend();
   window.addEventListener("valet-push", (e) => {
     const n = e.detail?.notification || {};
-    banner("✈", n.title || "Jay's Valet", n.body || "");
+    banner("✈", n.title || "Jay's Ramp Valet", n.body || "");
   });
   unsubAuth = backend.onAuth((u) => {
     session = u;
@@ -144,7 +144,7 @@ function renderAuth() {
   if (authMode === "signup") return renderSignup();
   root.innerHTML = `
     <div class="auth">
-      <div class="logo">JAY'S <b>VALET</b></div>
+      <div class="logo">JAY'S <b>RAMP VALET</b></div>
       <h1>Welcome back</h1>
       <p class="tag">Request parking for your aircraft the moment you're on the ground — and track every step.</p>
       <div class="field"><label>Email</label><input id="liEmail" type="email" placeholder="you@example.com"></div>
@@ -163,7 +163,7 @@ function renderAuth() {
 function renderSignup() {
   root.innerHTML = `
     <div class="auth" style="padding-top:24px">
-      <div class="logo">JAY'S <b>VALET</b></div>
+      <div class="logo">JAY'S <b>RAMP VALET</b></div>
       <h1 style="margin-top:12px">Become a tenant</h1>
       <p class="tag">Lease a ramp tie-down at Jay's and use the valet service.</p>
       <div class="field"><label>Full name</label><input id="suName" placeholder="Alex Rivera"></div>
@@ -187,7 +187,7 @@ function renderSignup() {
         tail: $("suTail").value.trim() || "N218AT", type: $("suType").value.trim() || "Cessna 182T",
         lease: $("suLease").value,
       });
-      banner("✓", "Account created", "Welcome to Jay's Valet!");
+      banner("✓", "Account created", "Welcome to Jay's Ramp Valet!");
     } catch (e) { $("suErr").textContent = friendlyAuthErr(e); }
   };
 }
@@ -214,7 +214,7 @@ function renderHome() {
 
   root.innerHTML = `
     <div class="ahead">
-      <div class="brand">JAY'S <b>VALET</b></div>
+      <div class="brand">JAY'S <b>RAMP VALET</b></div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="role-tag">${m.role}</span><div class="avatar">${m.avatar || "?"}</div>
       </div>
@@ -391,7 +391,7 @@ function renderTrack() {
   const idx = r.stepIndex || 0;
   root.innerHTML = `
     <div class="back" id="backBtn">‹ Back</div>
-    <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>VALET</b></div>
+    <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>RAMP VALET</b></div>
       <span class="badge inprog">● In progress</span></div>
     <div class="track-hero">
       <div class="small">${f.trackTitle}</div>
@@ -532,7 +532,7 @@ function renderLineman() {
   const open = queue.filter((r) => r.status !== "complete");
   const active = open.filter((r) => !r.scheduled);
   root.innerHTML = `
-    <div class="ahead"><div class="brand">JAY'S <b>VALET</b> · LINE</div><div class="avatar">${session.avatar || "LN"}</div></div>
+    <div class="ahead"><div class="brand">JAY'S <b>RAMP VALET</b> · LINE</div><div class="avatar">${session.avatar || "LN"}</div></div>
     <div class="h-title">Line queue</div>
     <div class="h-sub">${session.name} · lineman · ${active.length} active request${active.length === 1 ? "" : "s"}</div>
     ${active.length ? active.map(opCard).join("") : `<div class="empty">No active requests. New requests appear here in real time.</div>`}
@@ -574,7 +574,7 @@ function renderOwner() {
   ];
 
   root.innerHTML = `
-    <div class="ahead"><div class="brand">JAY'S <b>VALET</b> · OVERSIGHT</div>
+    <div class="ahead"><div class="brand">JAY'S <b>RAMP VALET</b> · OVERSIGHT</div>
       <div style="display:flex;align-items:center;gap:8px"><span class="role-tag">owner</span><div class="avatar">${session.avatar || "GM"}</div></div></div>
     <div class="h-title">${session.greet || "Line activity"}</div>
     <div class="h-sub">${session.name} · FBO operator · live across the ramp</div>
@@ -639,7 +639,7 @@ function renderOwnerDetail(r) {
   const f = FLOWS[r.type] || {}; const steps = r.steps || []; const idx = r.stepIndex || 0;
   root.innerHTML = `
     <div class="back" id="backBtn">‹ Back to oversight</div>
-    <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>VALET</b> · OVERSIGHT</div>
+    <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>RAMP VALET</b> · OVERSIGHT</div>
       <span class="badge ${r.status === "complete" ? "parked" : "inprog"}">● ${r.status === "complete" ? "Complete" : "In progress"}</span></div>
     <div class="track-hero">
       <div class="small">${f.title || r.type} · ${r.customerName}</div>
