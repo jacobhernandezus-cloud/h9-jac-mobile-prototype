@@ -227,3 +227,8 @@ body{
 
 .spinner{width:34px;height:34px;border:3px solid var(--soft-gray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:60px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Respect users who turn off motion at the OS level */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
