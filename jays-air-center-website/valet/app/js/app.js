@@ -310,7 +310,26 @@ function openFlow(key) {
     draft.services = [...root.querySelectorAll('#svcChips .chip.sel')].map((c) => c.dataset.svc);
   });
   bindTip();
+  makeTogglesAccessible(root);
   $("submitBtn").onclick = submitFlow;
+}
+/* Form chips and tip tiles are divs — give them a keyboard path and announce
+   selection state to assistive tech. */
+function makeTogglesAccessible(scope) {
+  scope.querySelectorAll(".chip,.tip-amt,.opt").forEach((el) => {
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-pressed", el.classList.contains("sel") ? "true" : "false");
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); }
+    });
+  });
+  scope.addEventListener("click", (e) => {
+    const t = e.target.closest(".chip,.tip-amt,.opt");
+    if (!t) return;
+    scope.querySelectorAll(".chip,.tip-amt,.opt").forEach((el) =>
+      el.setAttribute("aria-pressed", el.classList.contains("sel") ? "true" : "false"));
+  });
 }
 function bindOne(id, attr, set) {
   const wrap = $(id); if (!wrap) return;
