@@ -603,9 +603,13 @@ function renderOwner() {
     ${open.length ? open.map(ownerCard).join("") : `<div class="empty">No open requests right now.</div>`}
     ${done.length ? `<div class="section-label">Completed today</div>${done.slice(0, 5).map(ownerCard).join("")}` : ""}
     <div class="note" style="padding:22px 24px 0">Every request is logged and billable. Tap any card to see the full job detail and assigned lineman.</div>`;
-  root.querySelectorAll("[data-detail]").forEach((el) => el.onclick = () => {
-    const r = queue.find((x) => x.id === el.dataset.detail);
-    if (r) renderOwnerDetail(r);
+  root.querySelectorAll("[data-detail]").forEach((el) => {
+    const open = () => {
+      const r = queue.find((x) => x.id === el.dataset.detail);
+      if (r) renderOwnerDetail(r);
+    };
+    el.onclick = open;
+    el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
   });
 }
 function ownerCard(r) {
@@ -623,7 +627,7 @@ function ownerCard(r) {
     `→ ${r.spot || r.home}`,
   ].filter(Boolean);
   const badgeCls = r.status === "requested" ? "staged" : (r.status === "complete" ? "parked" : "inprog");
-  return `<div class="crew-card ${r.type === "stage" ? "stage" : ""}" data-detail="${r.id}" style="cursor:pointer">
+  return `<div class="crew-card tappable ${r.type === "stage" ? "stage" : ""}" data-detail="${r.id}" tabindex="0" role="button">
       <div class="top"><div>
       <div class="tail">${r.tail}</div>
       <div class="req">${f.title || r.type} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>

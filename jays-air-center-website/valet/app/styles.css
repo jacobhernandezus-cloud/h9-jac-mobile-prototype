@@ -203,6 +203,9 @@ body{
 
 /* Operator queue cards */
 .crew-card{margin:14px 20px 0;background:#fff;border:1px solid var(--soft-gray);border-radius:18px;padding:18px}
+.crew-card.tappable{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.crew-card.tappable:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(20,35,56,.12)}
+.crew-card.tappable:active{transform:translateY(0)}
 .crew-card.dim{opacity:.6}
 .crew-card.stage{border-left:3px solid var(--sky)}
 .crew-card .top{display:flex;justify-content:space-between;align-items:flex-start}
