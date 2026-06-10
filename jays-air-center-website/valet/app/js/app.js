@@ -25,6 +25,7 @@ const FLOWS = {
     title: "Schedule your arrival",
     sub: "Tell us when you land at KSNA — a lineman will meet your aircraft.",
     slotKind: "arrive", timeLabel: "arrival",
+    allowNow: true, ctaNow: "Request lineman now", // on-demand: already on the ground
     showFuel: true, showTip: true,
     cta: "Schedule arrival",
     trackTitle: "Lineman meeting your aircraft", finalKind: "arrival",
@@ -270,14 +271,23 @@ function openFlow(key) {
 
   if (f.slotKind) {
     const todayISO = localISODate(new Date());
+    draft.when = "sched";
     draft.slotDate = todayISO;
     draft.slotTime = defaultSlotTime(f.slotKind);
     composeSlot();
-    h += `<div class="section-label">Scheduled ${f.timeLabel} date</div>
+    if (f.allowNow) {
+      h += `<div class="section-label">When</div><div class="chips" id="whenChips">
+        <div class="chip sel" data-when="sched">Schedule for later</div>
+        <div class="chip" data-when="now">Now — on the ground</div>
+      </div>`;
+    }
+    h += `<div id="schedFields">
+      <div class="section-label">Scheduled ${f.timeLabel} date</div>
       <div class="field" style="margin-top:2px"><input type="date" id="slotDate" value="${todayISO}" min="${todayISO}"></div>
       <div class="section-label">Scheduled ${f.timeLabel} time</div>
       <div class="field" style="margin-top:2px"><select id="slotTime">${timeOptions(draft.slotTime)}</select></div>
-      ${f.timeNote ? `<div class="note">${f.timeNote}</div>` : ""}`;
+      ${f.timeNote ? `<div class="note">${f.timeNote}</div>` : ""}
+    </div>`;
   }
   if (f.showCars) {
     h += `<div class="section-label">Cars to valet — parking in the staging area</div><div class="chips" id="carChips">` +
@@ -304,6 +314,15 @@ function openFlow(key) {
   root.innerHTML = h; go("request");
 
   $("backBtn").onclick = renderHome;
+  const wc = $("whenChips");
+  if (wc) wc.querySelectorAll(".chip").forEach((c) => c.onclick = () => {
+    wc.querySelectorAll(".chip").forEach((x) => x.classList.remove("sel"));
+    c.classList.add("sel");
+    draft.when = c.dataset.when;
+    const sf = $("schedFields"); if (sf) sf.style.display = draft.when === "now" ? "none" : "";
+    const sb = $("submitBtn"); if (sb) sb.textContent = draft.when === "now" ? (f.ctaNow || f.cta) : f.cta;
+    composeSlot();
+  });
   const sd = $("slotDate"); if (sd) sd.onchange = () => { draft.slotDate = sd.value || sd.min; composeSlot(); };
   const st = $("slotTime"); if (st) st.onchange = () => { draft.slotTime = st.value; composeSlot(); };
   bindOne("carChips", "car", (v) => draft.cars = v);
@@ -401,7 +420,9 @@ async function submitFlow() {
   const base = {
     type: draft.type, customerUid: session.uid, customerName: m.name, customerRole: m.role,
     tail: m.tail, aircraftType: m.aircraftType || "", home: m.home,
-    slot: draft.slot, slotDate: draft.slotDate || null, slotTime: draft.slotTime || null,
+    slot: draft.slot, when: draft.when || null,
+    slotDate: draft.when === "now" ? null : draft.slotDate || null,
+    slotTime: draft.when === "now" ? null : draft.slotTime || null,
     cars: draft.cars, fuel: draft.fuel, services: draft.services, notes: draft.notes || null,
     spot: f.spot || m.home, status: "requested", stepIndex: 0,
     operatorUid: null, operatorName: null,
@@ -665,10 +686,11 @@ function ownerCard(r) {
     `→ ${r.spot || r.home}`,
   ].filter(Boolean);
   const badgeCls = r.status === "requested" ? "staged" : (r.status === "complete" ? "parked" : "inprog");
+  const title = r.when === "now" ? "On-demand arrival" : (f.title || r.type);
   return `<div class="crew-card tappable ${r.type === "stage" ? "stage" : ""}" data-detail="${r.id}" tabindex="0" role="button">
       <div class="top"><div>
       <div class="tail">${r.tail}</div>
-      <div class="req">${f.title || r.type} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>
+      <div class="req">${title} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>
       <span class="badge ${badgeCls}">${badge}</span></div>
       <div class="det">${details.map((d) => `<span class="tag">${d}</span>`).join("")}</div></div>`;
 }
@@ -680,7 +702,7 @@ function renderOwnerDetail(r) {
     <div class="ahead" style="padding-top:0"><div class="brand">JAY'S <b>RAMP VALET</b> · OVERSIGHT</div>
       <span class="badge ${r.status === "complete" ? "parked" : "inprog"}">● ${r.status === "complete" ? "Complete" : "In progress"}</span></div>
     <div class="track-hero">
-      <div class="small">${f.title || r.type} · ${r.customerName}</div>
+      <div class="small">${r.when === "now" ? "On-demand arrival" : (f.title || r.type)} · ${r.customerName}</div>
       <div class="big">${r.tail}</div>
       <div class="spot">${r.spot || r.home}${r.slot ? " · " + r.slot : ""}</div>
     </div>
@@ -717,9 +739,10 @@ function opCard(r) {
     r.notes ? `“${r.notes.length > 60 ? r.notes.slice(0, 60) + "…" : r.notes}”` : null,
     `→ ${r.spot || r.home}`,
   ].filter(Boolean);
+  const title = r.when === "now" ? "On-demand arrival" : (f.title || r.type);
   return `<div class="crew-card"><div class="top"><div>
       <div class="tail">${r.tail}</div>
-      <div class="req">${f.title || r.type} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>
+      <div class="req">${title} · ${r.slot ? r.slot + " · " : ""}${r.customerName}</div></div>
       <span class="badge ${r.status === "requested" ? "staged" : "inprog"}">${badge}</span></div>
       <div class="det">${details.map((d) => `<span class="tag">${d}</span>`).join("")}</div>
       <div class="crew-act">
@@ -798,9 +821,11 @@ function defaultSlotTime(kind) {
 function localISODate(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
-// r.slot stays a display string ("Jun 12 · 1:15 PM") so every existing render
-// site (track hero, queue cards, owner detail) keeps working unchanged.
+// r.slot stays a display string ("Jun 12 · 1:15 PM", or "ASAP" for on-demand
+// arrivals) so every existing render site (track hero, queue cards, owner
+// detail) keeps working unchanged.
 function composeSlot() {
+  if (draft.when === "now") { draft.slot = "ASAP"; return; }
   if (!draft.slotDate || !draft.slotTime) { draft.slot = null; return; }
   const [y, m, d] = draft.slotDate.split("-").map(Number);
   const label = new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
