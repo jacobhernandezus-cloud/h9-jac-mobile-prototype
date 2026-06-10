@@ -17,14 +17,14 @@ const $ = (id) => document.getElementById(id);
 const root = $("root");
 
 /* ------------------------------- flows -------------------------------- */
-// Two member flows: park (aircraft is on the ground — request parking now) and
-// stage (schedule a departure). Both optionally collect fuel, services and a
-// tip, and end with one Submit button.
+// Two member flows: park (schedule an arrival) and stage (schedule a
+// departure). Both optionally collect fuel and a tip, and end with one
+// Submit button.
 const FLOWS = {
   park: {
     title: "Request plane parking",
     sub: "Your aircraft is on the ground at KSNA.",
-    showFuel: true, showServices: true, showTip: true,
+    showFuel: true, showTip: true,
     cta: "Submit parking request",
     trackTitle: "Lineman meeting your aircraft", finalKind: "arrival",
     completeTitle: "Parked on the ramp", completeSpotLabel: "Parked at", spot: null,
@@ -35,7 +35,6 @@ const FLOWS = {
         ["Marshalling", "Guiding you to parking"],
       ];
       if (o.fuel && o.fuel !== "None") s.push(["Fueling", o.fuel]);
-      if (o.services && o.services.length) s.push(["Services", o.services.join(" · ") + " before parking"]);
       s.push(["Parked on ramp", "Secured at your spot"]);
       return s;
     },
@@ -45,7 +44,7 @@ const FLOWS = {
     sub: "Schedule a departure — we'll have your aircraft ready on the ramp.",
     slotKind: "depart", timeLabel: "Scheduled departure",
     timeNote: "Scheduled departures only. Earliest available is 2 hours out — this keeps last-minute ramp traffic down.",
-    showCars: true, showFuel: true, showServices: true, showTip: true, cta: "Submit staging request",
+    showCars: true, showFuel: true, showTip: true, cta: "Submit staging request",
     trackTitle: "Estimated ready", finalKind: "departure",
     completeTitle: "Staged & ready", completeSpotLabel: "Staged at", spot: "Row A · Spot 7",
     buildSteps(o) {
@@ -284,11 +283,6 @@ function openFlow(key) {
       ["None", "Top off Jet A", "Top off 100LL"].map((c) => `<div class="chip ${c === "None" ? "sel" : ""}" data-fuel="${c}">${c}</div>`).join("") +
       `</div>`;
   }
-  if (f.showServices) {
-    h += `<div class="section-label">Additional services</div><div class="chips" id="svcChips">` +
-      ["Lav service", "Potable water", "Ground power", "Rental car", "Catering"].map((s) => `<div class="chip" data-svc="${s}">${s}</div>`).join("") +
-      `</div>`;
-  }
   if (f.showTip) {
     const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
     h += `<div class="section-label">Add a tip — optional</div>
@@ -304,9 +298,6 @@ function openFlow(key) {
   bindOne("slotChips", "slot", (v) => draft.slot = v);
   bindOne("carChips", "car", (v) => draft.cars = v);
   bindOne("fuelChips", "fuel", (v) => draft.fuel = v);
-  bindMulti("svcChips", "svc", () => {
-    draft.services = [...root.querySelectorAll('#svcChips .chip.sel')].map((c) => c.dataset.svc);
-  });
   bindTip();
   makeTogglesAccessible(root);
   $("submitBtn").onclick = submitFlow;
@@ -335,10 +326,6 @@ function bindOne(id, attr, set) {
     wrap.querySelectorAll(".chip").forEach((x) => x.classList.remove("sel"));
     c.classList.add("sel"); set(c.dataset[attr]);
   });
-}
-function bindMulti(id, attr, set) {
-  const wrap = $(id); if (!wrap) return;
-  wrap.querySelectorAll(".chip").forEach((c) => c.onclick = () => { c.classList.toggle("sel"); set(); });
 }
 function bindTip() {
   const wrap = $("tipGrid"); if (!wrap) return;
