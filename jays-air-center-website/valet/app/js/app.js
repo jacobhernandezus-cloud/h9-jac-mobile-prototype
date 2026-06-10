@@ -22,10 +22,10 @@ const root = $("root");
 // Submit button.
 const FLOWS = {
   park: {
-    title: "Request plane parking",
-    sub: "Your aircraft is on the ground at KSNA.",
+    title: "Schedule your arrival",
+    sub: "Tell us when you land at KSNA — a lineman will meet your aircraft.",
     showFuel: true, showTip: true,
-    cta: "Submit parking request",
+    cta: "Schedule arrival",
     trackTitle: "Lineman meeting your aircraft", finalKind: "arrival",
     completeTitle: "Parked on the ramp", completeSpotLabel: "Parked at", spot: null,
     buildSteps(o) {
@@ -40,11 +40,11 @@ const FLOWS = {
     },
   },
   stage: {
-    title: "Request ramp staging",
-    sub: "Schedule a departure — we'll have your aircraft ready on the ramp.",
-    slotKind: "depart", timeLabel: "Scheduled departure",
+    title: "Schedule your departure",
+    sub: "We'll have your aircraft staged and ready on the ramp.",
+    slotKind: "depart", timeLabel: "departure",
     timeNote: "Scheduled departures only. Earliest available is 2 hours out — this keeps last-minute ramp traffic down.",
-    showCars: true, showFuel: true, showTip: true, cta: "Submit staging request",
+    showCars: true, showFuel: true, showTip: true, cta: "Schedule departure",
     trackTitle: "Estimated ready", finalKind: "departure",
     completeTitle: "Staged & ready", completeSpotLabel: "Staged at", spot: "Row A · Spot 7",
     buildSteps(o) {
@@ -232,8 +232,8 @@ function renderHome() {
     </div>
 
     <div class="home-cta">
-      <button class="primary big" data-flow="park">✈&nbsp; Request parking</button>
-      <button class="ghost" data-flow="stage">◷&nbsp; Request staging</button>
+      <button class="primary big" data-flow="park">✈&nbsp; Schedule Your Arrival</button>
+      <button class="ghost" data-flow="stage">◷&nbsp; Schedule Your Departure</button>
     </div>
 
     ${recent.length ? `<div class="section-label">Recent activity</div>
