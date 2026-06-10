@@ -202,7 +202,6 @@ function memberProfile() {
     tail: session.tail || (myRequests[0]?.tail) || "—",
     aircraftType: session.aircraftType || (myRequests[0]?.aircraftType) || "",
     home: session.home || (myRequests[0]?.home) || "—",
-    billNote: session.role === "tenant" ? "Valet services are billed per use to your tenant account." : null,
   };
 }
 function renderHome() {
@@ -237,7 +236,6 @@ function renderHome() {
       <button class="primary big" data-flow="park">✈&nbsp; Request parking</button>
       <button class="ghost" data-flow="stage">◷&nbsp; Request staging</button>
     </div>
-    ${m.billNote ? `<div class="note">${m.billNote}</div>` : ""}
 
     ${recent.length ? `<div class="section-label">Recent activity</div>
       ${recent.map((r) => `<div class="act" data-open="${r.id}" style="cursor:pointer"><div class="dot">${stepIcon(FLOWS[r.type]?.completeTitle || "")}</div>

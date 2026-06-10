@@ -19,7 +19,6 @@ const DEMO_USERS = {
     uid: "demo-tenant", role: "tenant", name: "Alex Rivera", avatar: "AR",
     greet: "Welcome, Alex.", sub: "Leasing Row C · Tie-down 4.",
     tail: "N218AT", aircraftType: "Cessna 182T", home: "Row C · TD 4",
-    billNote: "Valet services are billed per use to your tenant account.",
   },
   lineman: {
     uid: "demo-operator", role: "lineman", name: "Marcus Reyes", avatar: "MR",
