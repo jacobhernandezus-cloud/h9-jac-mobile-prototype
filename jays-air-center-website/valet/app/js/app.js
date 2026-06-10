@@ -209,6 +209,7 @@ function renderHome() {
   go("home");
   const m = memberProfile();
   const active = myRequests.find((r) => r.status === "requested" || r.status === "inprogress");
+  const activeStatus = active ? ((active.steps || [])[active.stepIndex ?? 0]?.[0] || active.statusLabel || "In progress") : null;
   const recent = myRequests.filter((r) => r.status === "complete").slice(0, 2);
 
   root.innerHTML = `
@@ -227,18 +228,14 @@ function renderHome() {
       <div class="ac-tail" style="margin-top:12px">${m.tail}</div>
       <div class="ac-type">${m.aircraftType || ""}</div>
       <div class="ac-meta">
-        <div><span>Home</span><b>${m.home}</b></div>
-        ${active ? `<div><span>Live status</span><b>Tap to track ›</b></div>` : ""}
+        <div><span>Location</span><b>${m.home}</b></div>
+        ${active ? `<div><span>Live status</span><b>${activeStatus} ›</b></div>` : ""}
       </div>
     </div>
 
-    ${active ? `<div class="pending ${active.type === "stage" ? "stage" : ""}" id="activeCard"><div class="dot">${active.type === "stage" ? "🛫" : "✈"}</div>
-      <div class="t"><b>${FLOWS[active.type]?.title || "Active request"} in progress</b>
-      <span>Tap to open ${active.tail} — live status, your lineman & tip.</span></div><div>›</div></div>` : ""}
-
     <div class="home-cta">
-      <button class="primary big" data-flow="park">✈&nbsp; Request plane parking</button>
-      <button class="ghost" data-flow="stage">🗓️&nbsp; Schedule a departure</button>
+      <button class="primary big" data-flow="park">✈&nbsp; Request parking</button>
+      <button class="ghost" data-flow="stage">🗓️&nbsp; Request staging</button>
     </div>
     ${m.billNote ? `<div class="note">${m.billNote}</div>` : ""}
 
@@ -251,7 +248,6 @@ function renderHome() {
     <div class="tabbar">
       <button class="active"><span class="ti">⌂</span>Home</button>
       <button id="actTab"><span class="ti">≣</span>Activity</button>
-      <button id="moreTab"><span class="ti">☰</span>More</button>
     </div>`;
 
   root.querySelectorAll("[data-flow]").forEach((b) => b.onclick = () => openFlow(b.dataset.flow));
@@ -260,10 +256,8 @@ function renderHome() {
     acCard.onclick = openActive;
     acCard.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openActive(); } };
   }
-  const ac = $("activeCard"); if (ac) ac.onclick = openActive;
   root.querySelectorAll("[data-open]").forEach((el) => el.onclick = () => { trackingId = el.dataset.open; renderTrack(); });
   $("actTab").onclick = renderActivity;
-  $("moreTab").onclick = () => alert("Profile, aircraft & billing — coming after MVP sign-off.");
 }
 
 /* ----------------------------- request -------------------------------- */
@@ -508,11 +502,9 @@ function renderActivity() {
     <div class="tabbar">
       <button id="homeTab"><span class="ti">⌂</span>Home</button>
       <button class="active"><span class="ti">≣</span>Activity</button>
-      <button id="moreTab2"><span class="ti">☰</span>More</button>
     </div>`;
   root.querySelectorAll("[data-open]").forEach((el) => el.onclick = () => { trackingId = el.dataset.open; renderTrack(); });
   $("homeTab").onclick = renderHome;
-  $("moreTab2").onclick = () => alert("Profile, aircraft & billing — coming after MVP sign-off.");
 }
 
 /* ------------------------------ lineman ------------------------------- */
