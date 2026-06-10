@@ -296,10 +296,10 @@ function openFlow(key) {
     h += `<div class="section-label">Add a tip — optional</div>
       <div class="tip-grid" id="tipGrid">` +
       tips.map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("") +
-      `</div><div class="note">100% of tips go to your lineman. Recorded only — no card is charged in this demo.</div>`;
+      `</div>`;
   }
 
-  h += `<div class="submitbar"><button class="primary" id="submitBtn">${f.cta}</button></div>`;
+  h += `<div class="submitbar">${f.showTip ? `<div class="note">100% of tips go to your lineman. Recorded only — no card is charged in this demo.</div>` : ""}<button class="primary" id="submitBtn">${f.cta}</button></div>`;
   root.innerHTML = h; go("request");
 
   $("backBtn").onclick = renderHome;

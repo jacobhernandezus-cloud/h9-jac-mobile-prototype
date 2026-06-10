@@ -84,6 +84,7 @@ body{
 .submitbar{position:sticky;bottom:0;margin-top:26px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));
   background:linear-gradient(to top, var(--warm-white) 62%, rgba(248,246,243,0))}
 .submitbar .primary{margin:0;width:100%;font-size:16.5px;padding:18px}
+.submitbar .note{padding:0 4px 10px;text-align:center}
 .ghost{display:flex;align-items:center;justify-content:center;gap:9px;margin:10px 20px 0;background:transparent;color:var(--deep-navy);border:1.5px solid var(--soft-gray);font-family:'DM Sans';font-size:15px;font-weight:500;padding:15px;border-radius:16px;cursor:pointer}
 .linkbtn{background:none;border:none;color:var(--sky);font-weight:500;font-size:14px;cursor:pointer;font-family:'DM Sans'}
 .note{padding:8px 24px 0;font-size:12px;color:var(--ink-soft);font-weight:300;line-height:1.5}
