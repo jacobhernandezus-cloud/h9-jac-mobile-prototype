@@ -262,7 +262,8 @@ function renderHome() {
 let draft = {};
 function openFlow(key) {
   const f = FLOWS[key]; const m = memberProfile();
-  draft = { type: key, cars: "0", services: [], fuel: "None", slot: null, tip: null };
+  draft = { type: key, cars: "0", services: [], fuel: "None", slot: null, tip: null,
+    fuelType: "None", fuelAmt: "top", fuelGal: "", prist: false, notes: "" };
   let h = `<div class="back" id="backBtn">‹ Back</div>
     <div class="h-title">${f.title}</div>
     <div class="h-sub">${m.tail} · ${m.aircraftType || ""} · ${f.sub}</div>`;
@@ -285,8 +286,8 @@ function openFlow(key) {
   }
   if (f.showFuel) {
     h += `<div class="section-label">Fuel</div><div class="chips" id="fuelChips">` +
-      ["None", "Top off Jet A", "Top off 100LL"].map((c) => `<div class="chip ${c === "None" ? "sel" : ""}" data-fuel="${c}">${c}</div>`).join("") +
-      `</div>`;
+      ["None", "Jet A", "100LL"].map((c) => `<div class="chip ${c === "None" ? "sel" : ""}" data-fuel="${c}">${c}</div>`).join("") +
+      `</div><div id="fuelExtra"></div>`;
   }
   if (f.showTip) {
     const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
@@ -303,7 +304,8 @@ function openFlow(key) {
   const sd = $("slotDate"); if (sd) sd.onchange = () => { draft.slotDate = sd.value || sd.min; composeSlot(); };
   const st = $("slotTime"); if (st) st.onchange = () => { draft.slotTime = st.value; composeSlot(); };
   bindOne("carChips", "car", (v) => draft.cars = v);
-  bindOne("fuelChips", "fuel", (v) => draft.fuel = v);
+  bindOne("fuelChips", "fuel", (v) => { draft.fuelType = v; renderFuelExtra(); });
+  renderFuelExtra();
   bindTip();
   makeTogglesAccessible(root);
   $("submitBtn").onclick = submitFlow;
@@ -325,6 +327,45 @@ function makeTogglesAccessible(scope) {
     scope.querySelectorAll(".chip,.tip-amt,.opt").forEach((el) =>
       el.setAttribute("aria-pressed", el.classList.contains("sel") ? "true" : "false"));
   });
+}
+/* Fuel detail controls — amount (top off vs. gallons) and Prist for Jet A.
+   Some owners, especially turbine, don't want a top-off, so gallons is a
+   first-class option (George item 4). draft.fuel stays a display string so
+   queue cards, steps and billing keep working unchanged. */
+function renderFuelExtra() {
+  const box = $("fuelExtra"); if (!box) return;
+  if (!draft.fuelType || draft.fuelType === "None") { box.innerHTML = ""; composeFuel(); return; }
+  box.innerHTML = `
+    <div class="chips" id="amtChips">
+      <div class="chip ${draft.fuelAmt === "top" ? "sel" : ""}" data-amt="top">Top off</div>
+      <div class="chip ${draft.fuelAmt === "gal" ? "sel" : ""}" data-amt="gal">Enter gallons</div>
+      ${draft.fuelType === "Jet A" ? `<div class="chip ${draft.prist ? "sel" : ""}" data-prist="1">+ Prist</div>` : ""}
+    </div>
+    ${draft.fuelAmt === "gal" ? `<div class="field" style="margin-top:10px">
+      <input type="number" id="galInput" inputmode="numeric" min="1" max="2000" placeholder="Gallons" value="${draft.fuelGal || ""}"></div>` : ""}`;
+  box.querySelectorAll("[data-amt]").forEach((c) => c.onclick = () => {
+    draft.fuelAmt = c.dataset.amt; renderFuelExtra();
+    if (draft.fuelAmt === "gal") { const g = $("galInput"); if (g) g.focus(); }
+  });
+  const p = box.querySelector("[data-prist]");
+  if (p) p.onclick = () => { draft.prist = !draft.prist; renderFuelExtra(); };
+  const g = $("galInput");
+  if (g) g.oninput = () => { draft.fuelGal = g.value; composeFuel(); };
+  box.querySelectorAll(".chip").forEach((el) => {
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-pressed", el.classList.contains("sel") ? "true" : "false");
+    el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } };
+  });
+  composeFuel();
+}
+function composeFuel() {
+  if (!draft.fuelType || draft.fuelType === "None") { draft.fuel = "None"; return; }
+  let s = (draft.fuelAmt === "gal" && draft.fuelGal)
+    ? `${draft.fuelType} · ${draft.fuelGal} gal`
+    : `Top off ${draft.fuelType}`;
+  if (draft.fuelType === "Jet A" && draft.prist) s += " + Prist";
+  draft.fuel = s;
 }
 function bindOne(id, attr, set) {
   const wrap = $(id); if (!wrap) return;
