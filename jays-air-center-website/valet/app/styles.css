@@ -195,8 +195,9 @@ body{
 /* Sign-up + login fields */
 .field{margin:14px 24px 0}
 .field label{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px}
-.field input,.field select{width:100%;border:1.5px solid var(--soft-gray);border-radius:12px;padding:13px 14px;font-family:'DM Sans';font-size:15px;color:var(--charcoal);background:#fff}
-.field input:focus,.field select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,165,91,.12)}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--soft-gray);border-radius:12px;padding:13px 14px;font-family:'DM Sans';font-size:15px;color:var(--charcoal);background:#fff}
+.field textarea{resize:vertical;min-height:64px;line-height:1.45}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,165,91,.12)}
 .agree{display:flex;gap:10px;align-items:flex-start;margin:18px 24px 0;font-size:12.5px;color:var(--ink-mid);font-weight:300;line-height:1.5}
 .agree input{margin-top:2px}
 

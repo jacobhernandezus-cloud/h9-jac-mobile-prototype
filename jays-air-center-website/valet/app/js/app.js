@@ -297,6 +297,9 @@ function openFlow(key) {
       `</div>`;
   }
 
+  h += `<div class="section-label">Additional notes</div>
+    <div class="field" style="margin-top:2px"><textarea id="notesField" rows="3" maxlength="280" placeholder="Anything the line crew should know? (optional)"></textarea></div>`;
+
   h += `<div class="submitbar">${f.showTip ? `<div class="note">100% of tips go to your lineman. Recorded only — no card is charged in this demo.</div>` : ""}<button class="primary" id="submitBtn">${f.cta}</button></div>`;
   root.innerHTML = h; go("request");
 
@@ -306,6 +309,7 @@ function openFlow(key) {
   bindOne("carChips", "car", (v) => draft.cars = v);
   bindOne("fuelChips", "fuel", (v) => { draft.fuelType = v; renderFuelExtra(); });
   renderFuelExtra();
+  const nf = $("notesField"); if (nf) nf.oninput = () => { draft.notes = nf.value.trim(); };
   bindTip();
   makeTogglesAccessible(root);
   $("submitBtn").onclick = submitFlow;
@@ -398,7 +402,7 @@ async function submitFlow() {
     type: draft.type, customerUid: session.uid, customerName: m.name, customerRole: m.role,
     tail: m.tail, aircraftType: m.aircraftType || "", home: m.home,
     slot: draft.slot, slotDate: draft.slotDate || null, slotTime: draft.slotTime || null,
-    cars: draft.cars, fuel: draft.fuel, services: draft.services,
+    cars: draft.cars, fuel: draft.fuel, services: draft.services, notes: draft.notes || null,
     spot: f.spot || m.home, status: "requested", stepIndex: 0,
     operatorUid: null, operatorName: null,
     tip: draft.tip ? { amount: draft.tip, mock: true } : null, rating: null,
@@ -657,6 +661,7 @@ function ownerCard(r) {
     ...(r.services || []),
     r.operatorName ? `Lineman: ${r.operatorName}` : "Unassigned",
     r.tip ? `♥ $${r.tip.amount} tip` : null,
+    r.notes ? `“${r.notes.length > 60 ? r.notes.slice(0, 60) + "…" : r.notes}”` : null,
     `→ ${r.spot || r.home}`,
   ].filter(Boolean);
   const badgeCls = r.status === "requested" ? "staged" : (r.status === "complete" ? "parked" : "inprog");
@@ -679,6 +684,7 @@ function renderOwnerDetail(r) {
       <div class="big">${r.tail}</div>
       <div class="spot">${r.spot || r.home}${r.slot ? " · " + r.slot : ""}</div>
     </div>
+    ${r.notes ? `<div class="note" style="padding-top:14px">Customer note: “${r.notes}”</div>` : ""}
     <div class="steps">${steps.map((s, i) => {
       const cls = i < idx ? "done" : (i === idx && r.status !== "complete" ? "active" : (r.status === "complete" ? "done" : ""));
       const node = (i < idx || r.status === "complete") ? "✓" : (i + 1);
@@ -708,6 +714,7 @@ function opCard(r) {
     r.fuel && r.fuel !== "None" ? r.fuel : null,
     ...(r.services || []),
     r.tip ? `♥ $${r.tip.amount} tip` : null,
+    r.notes ? `“${r.notes.length > 60 ? r.notes.slice(0, 60) + "…" : r.notes}”` : null,
     `→ ${r.spot || r.home}`,
   ].filter(Boolean);
   return `<div class="crew-card"><div class="top"><div>
