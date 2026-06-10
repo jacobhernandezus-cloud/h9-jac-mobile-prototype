@@ -120,6 +120,11 @@ body{
 .opt.sel .check{border-color:var(--gold);background:var(--gold);position:relative}
 .opt.sel .check:after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
 .chip:focus-visible,.tip-amt:focus-visible,.opt:focus-visible,.ac-card.tappable:focus-visible,.crew-card.tappable:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+/* Desktop hover affordance — gold border telegraphs "selectable" before the click */
+@media (hover:hover){
+  .chip:not(.sel):hover,.tip-amt:not(.sel):hover,.opt:not(.sel):hover{border-color:var(--gold)}
+  .pending:hover{box-shadow:0 6px 16px rgba(20,35,56,.1)}
+}
 .chips{display:flex;flex-wrap:wrap;gap:9px;padding:10px 20px 0}
 .chip{border:1.5px solid var(--soft-gray);background:#fff;border-radius:999px;padding:9px 15px;font-size:13px;font-weight:500;color:var(--charcoal);cursor:pointer;transition:transform .15s,background-color .15s,border-color .15s,box-shadow .15s,color .15s}
 .chip.sel{background:var(--deep-navy);color:#fff;border-color:var(--deep-navy)}
@@ -196,7 +201,7 @@ body{
 .agree input{margin-top:2px}
 
 /* Tab bar */
-.tabbar{flex:none;height:74px;background:rgba(248,246,243,.95);backdrop-filter:blur(10px);border-top:1px solid var(--soft-gray);display:flex;padding-bottom:10px}
+.tabbar{flex:none;height:74px;background:rgba(248,246,243,.95);backdrop-filter:blur(10px);border-top:1px solid var(--soft-gray);display:flex;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 .tabbar button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink-faint);font-size:10.5px;font-weight:500;cursor:pointer;font-family:'DM Sans'}
 .tabbar button .ti{font-size:21px}
 .tabbar button.active{color:var(--deep-navy)}
