@@ -235,7 +235,7 @@ function renderHome() {
 
     <div class="home-cta">
       <button class="primary big" data-flow="park">✈&nbsp; Request parking</button>
-      <button class="ghost" data-flow="stage">🗓️&nbsp; Request staging</button>
+      <button class="ghost" data-flow="stage">◷&nbsp; Request staging</button>
     </div>
     ${m.billNote ? `<div class="note">${m.billNote}</div>` : ""}
 
@@ -441,7 +441,7 @@ function renderReady(r) {
   root.innerHTML = `
     <div class="back" id="backBtn">‹ Back</div>
     <div class="center-pad">
-      <div class="seal">${f.finalKind === "departure" ? "✈" : "🅿️"}</div>
+      <div class="seal">${f.finalKind === "departure" ? "✈" : "✓"}</div>
       <h2>${f.completeTitle}</h2>
       <p>${r.tail} is all set. ${f.finalKind === "departure" ? "Safe flight." : "Welcome to Jay's."}</p>
       <div class="track-hero" style="margin-top:26px;width:100%">
