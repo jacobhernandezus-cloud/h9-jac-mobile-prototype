@@ -24,7 +24,7 @@ body{
 /* connection / demo pill */
 .envbar{flex:none;display:flex;align-items:center;justify-content:center;gap:8px;
   font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;
-  padding:6px 12px;background:var(--deep-navy);color:#9fb0c2}
+  padding:calc(6px + env(safe-area-inset-top)) 12px 6px;background:var(--deep-navy);color:#9fb0c2}
 .envbar .dot{width:7px;height:7px;border-radius:50%;background:var(--gold)}
 .envbar.live .dot{background:var(--green)}
 .envbar select{background:none;border:1px solid #34465a;color:#cdd8e2;border-radius:6px;

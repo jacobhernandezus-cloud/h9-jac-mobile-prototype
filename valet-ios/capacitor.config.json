@@ -1,0 +1,10 @@
+{
+  "appId": "com.jaysaircenter.rampvalet",
+  "appName": "Jay's Ramp Valet",
+  "webDir": "www",
+  "backgroundColor": "#1B2838",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#1B2838"
+  }
+}
