@@ -67,6 +67,7 @@ const FLOWS = {
 /* ------------------------------- boot --------------------------------- */
 (async function boot() {
   backend = await getBackend();
+  if (backend.mode === "live") await tipConfig(); // know payment mode before first render
   window.addEventListener("valet-push", (e) => {
     const n = e.detail?.notification || {};
     banner("✈", n.title || "Jay's Ramp Valet", n.body || "");
@@ -307,7 +308,10 @@ function openFlow(key) {
       ["None", "Jet A", "100LL"].map((c) => `<div class="chip ${c === "None" ? "sel" : ""}" data-fuel="${c}">${c}</div>`).join("") +
       `</div><div id="fuelExtra"></div>`;
   }
-  if (f.showTip) {
+  // Real card tips happen after service (when the lineman is known), like a
+  // rideshare. The at-request tip selector only shows in mock/recorded modes.
+  const formTip = f.showTip && !(backend.mode === "live" && tipPay.configured);
+  if (formTip) {
     const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
     h += `<div class="section-label">Add a tip — optional</div>
       <div class="tip-grid" id="tipGrid">` +
@@ -318,7 +322,7 @@ function openFlow(key) {
   h += `<div class="section-label">Additional notes</div>
     <div class="field" style="margin-top:2px"><textarea id="notesField" rows="3" maxlength="280" placeholder="Anything the line crew should know? (optional)"></textarea></div>`;
 
-  h += `<div class="submitbar">${f.showTip ? `<div class="note">100% of tips go to your lineman. Recorded only — no card is charged in this demo.</div>` : ""}<button class="primary" id="submitBtn">${f.cta}</button></div>`;
+  h += `<div class="submitbar">${formTip ? `<div class="note">${tipNoteCopy(null)}</div>` : (f.showTip ? `<div class="note">You can tip your lineman after service.</div>` : "")}<button class="primary" id="submitBtn">${f.cta}</button></div>`;
   root.innerHTML = h; go("request");
 
   $("backBtn").onclick = renderHome;
@@ -405,6 +409,84 @@ function bindOne(id, attr, set) {
     c.classList.add("sel"); set(c.dataset[attr]);
   });
 }
+/* ----------------------------- tip payments ---------------------------- */
+// Live mode + Stripe configured = real card charges through a payment sheet.
+// Live without Stripe keys = tips recorded on the tenant's FBO account.
+// Demo mode = mock, unchanged.
+const tipPay = { ready: null, configured: false, pk: null, stripe: null };
+function tipConfig() {
+  if (!tipPay.ready) {
+    tipPay.ready = backend.tipsConfig()
+      .then((c) => { tipPay.configured = !!c.configured; tipPay.pk = c.publishableKey || null; return tipPay; })
+      .catch(() => tipPay);
+  }
+  return tipPay.ready;
+}
+function tipNoteCopy(name) {
+  const who = name || "your lineman";
+  if (backend.mode !== "live") return `100% of tips go to ${who}. Recorded only — no card is charged in this demo.`;
+  return tipPay.configured
+    ? `100% of tips go to ${who}.`
+    : `100% of tips go to ${who} — added to your Jay's account statement.`;
+}
+function loadStripeJs() {
+  if (window.Stripe) return Promise.resolve(window.Stripe);
+  return new Promise((ok, err) => {
+    const s = document.createElement("script");
+    s.src = "https://js.stripe.com/v3/";
+    s.onload = () => ok(window.Stripe);
+    s.onerror = err;
+    document.head.appendChild(s);
+  });
+}
+// Bottom-sheet card form. Resolves true only after Stripe confirms the charge
+// AND the server has verified + recorded it.
+async function paySheet(requestId, amount, linemanName) {
+  await tipConfig();
+  if (!tipPay.configured) return false;
+  const overlay = document.createElement("div");
+  overlay.className = "paysheet";
+  overlay.innerHTML = `<div class="paycard">
+    <div class="payhead"><b>$${amount} tip · ${linemanName || "your lineman"}</b><span>100% goes to your lineman</span></div>
+    <div id="payel"><div class="spinner" style="margin:30px auto"></div></div>
+    <div class="payerr" id="payErr"></div>
+    <button class="primary" id="payBtn" disabled>Pay $${amount}</button>
+    <button class="ghost" id="payCancel">Cancel</button>
+  </div>`;
+  document.querySelector(".appwrap").appendChild(overlay);
+  const close = (v) => { overlay.remove(); return v; };
+  try {
+    const Stripe = await loadStripeJs();
+    if (!tipPay.stripe) tipPay.stripe = Stripe(tipPay.pk);
+    const { clientSecret, id } = await backend.tipIntent(requestId, amount);
+    const elements = tipPay.stripe.elements({
+      clientSecret,
+      appearance: { variables: { colorPrimary: "#C9A55B", colorText: "#1A1A1A", fontFamily: "'DM Sans', sans-serif", borderRadius: "12px" } },
+    });
+    elements.create("payment").mount("#payel");
+    $("payBtn").disabled = false;
+    return await new Promise((resolve) => {
+      $("payCancel").onclick = () => resolve(close(false));
+      $("payBtn").onclick = async () => {
+        $("payBtn").disabled = true; $("payBtn").textContent = "Paying…";
+        const { error } = await tipPay.stripe.confirmPayment({ elements, redirect: "if_required" });
+        if (error) {
+          $("payErr").textContent = error.message || "Payment didn't go through.";
+          $("payBtn").disabled = false; $("payBtn").textContent = `Pay $${amount}`;
+          return;
+        }
+        try { await backend.tipConfirmed(requestId, id); } catch (_) { /* server re-verifies on next poll */ }
+        resolve(close(true));
+      };
+    });
+  } catch (e) {
+    const err = overlay.querySelector("#payErr");
+    if (err) err.textContent = "Couldn't start the payment.";
+    setTimeout(() => overlay.remove(), 1600);
+    return false;
+  }
+}
+
 /* Inline custom-tip amount field. window.prompt() is jarring on the web and
    looks broken inside a native webview, so tapping Custom reveals a field
    under the grid instead. onChange(amount|null) fires as the value changes;
@@ -509,7 +591,7 @@ function renderTrack() {
       : (r.operatorName
         ? `<div class="section-label">Say thanks — tip your lineman</div>
            <div class="tip-grid" id="trackTip">${[["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]].map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("")}</div>
-           <div class="note">100% goes to ${r.operatorName}. Recorded only — no card is charged in this demo.</div>`
+           <div class="note">${tipNoteCopy(r.operatorName)}</div>`
         : "")}
     <button class="ghost" id="homeBtn" style="margin-top:18px">Back to home</button>`;
   $("backBtn").onclick = renderHome;
@@ -517,6 +599,12 @@ function renderTrack() {
   const tt = $("trackTip");
   if (tt) {
     const sendTip = async (amt) => {
+      if (backend.mode === "live" && (await tipConfig()).configured) {
+        const paid = await paySheet(r.id, amt, r.operatorName);
+        if (paid) { banner("♥", "Thanks sent", "$" + amt + " tip sent to " + r.operatorName + "."); }
+        renderTrack();
+        return;
+      }
       try { await backend.setTipRating(r.id, { tip: { amount: amt, mock: true } }); } catch (_) {}
       banner("♥", "Thanks sent", "$" + amt + " tip recorded for " + r.operatorName + ".");
       renderTrack();
@@ -602,7 +690,13 @@ function renderDone(r) {
   $("homeBtn").onclick = async () => {
     const patch = {};
     if (stars) patch.rating = stars;
-    if (tipAmt) patch.tip = { amount: tipAmt, mock: true };
+    if (tipAmt && backend.mode === "live" && (await tipConfig()).configured) {
+      const paid = await paySheet(r.id, tipAmt, linemanName);
+      if (paid) banner("♥", "Thanks sent", "$" + tipAmt + " tip sent to " + linemanName + ".");
+      else if (!stars) return; // payment cancelled, nothing else to save — stay here
+    } else if (tipAmt) {
+      patch.tip = { amount: tipAmt, mock: true };
+    }
     if (Object.keys(patch).length) {
       try { await backend.setTipRating(r.id, patch); } catch (_) {}
       if (patch.tip) banner("♥", "Thanks sent", "$" + tipAmt + " tip recorded for " + linemanName + ".");

@@ -237,6 +237,16 @@ body{
 .spinner{width:34px;height:34px;border:3px solid var(--soft-gray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:60px auto}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* Stripe payment sheet */
+.paysheet{position:absolute;inset:0;background:rgba(17,22,29,.55);backdrop-filter:blur(3px);z-index:90;display:flex;align-items:flex-end}
+.paycard{width:100%;background:var(--warm-white);border-radius:22px 22px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom))}
+.payhead b{display:block;font-size:16px;font-weight:600;color:var(--charcoal)}
+.payhead span{font-size:12.5px;color:var(--ink-soft)}
+#payel{margin:16px 0 6px;min-height:120px}
+.payerr{min-height:18px;font-size:12.5px;color:var(--red);padding:4px 2px}
+.paysheet .primary{width:100%;margin:0}
+.paysheet .ghost{width:100%;margin:10px 0 0}
+
 /* Respect users who turn off motion at the OS level */
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}

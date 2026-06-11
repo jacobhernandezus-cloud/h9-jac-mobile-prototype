@@ -125,6 +125,7 @@ class DemoBackend {
   }
   async signIn() { throw new Error("Demo mode — use the role switcher above."); }
   async signUp() { this.demoSwitch("tenant"); }
+  async tipsConfig() { return { configured: false }; } // demo tips stay mock
   async signOut() {}
   async registerPush() {} // no-op in demo (in-app banners only)
 
@@ -217,6 +218,18 @@ class NetlifyBackend {
     if (this._authCb) this._authCb(null);
   }
   async registerPush() {} // in-app banners only — nothing to register
+
+  // Tip payments (Stripe). configured:false until Stripe env keys are set,
+  // and the app falls back to recorded-only tips.
+  async tipsConfig() {
+    try { return await this._get("valet-tips"); } catch { return { configured: false }; }
+  }
+  async tipIntent(requestId, amount) {
+    return this._post("valet-tips", { action: "intent", requestId, amount });
+  }
+  async tipConfirmed(requestId, paymentIntentId) {
+    return this._post("valet-tips", { action: "confirmed", requestId, paymentIntentId });
+  }
 
   async createRequest(data) {
     const { request } = await this._post("valet-requests", { action: "create", data });
