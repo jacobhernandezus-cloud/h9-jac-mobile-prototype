@@ -263,6 +263,14 @@ function renderHome() {
 let draft = {};
 function openFlow(key) {
   const f = FLOWS[key]; const m = memberProfile();
+  // One active request per flow type per aircraft. A second submit would
+  // double-dispatch the line crew, so route to the live tracker instead.
+  const existing = myRequests.find((r) => r.type === key && (r.status === "requested" || r.status === "inprogress"));
+  if (existing) {
+    trackingId = existing.id;
+    banner("✈", "Already in progress", `You have an active ${key === "park" ? "arrival" : "departure"} request for ${existing.tail}.`);
+    return renderTrack();
+  }
   draft = { type: key, cars: "0", services: [], fuel: "None", slot: null, tip: null,
     fuelType: "None", fuelAmt: "top", fuelGal: "", prist: false, notes: "" };
   let h = `<div class="back" id="backBtn">‹ Back</div>
@@ -397,21 +405,47 @@ function bindOne(id, attr, set) {
     c.classList.add("sel"); set(c.dataset[attr]);
   });
 }
+/* Inline custom-tip amount field. window.prompt() is jarring on the web and
+   looks broken inside a native webview, so tapping Custom reveals a field
+   under the grid instead. onChange(amount|null) fires as the value changes;
+   pass confirm:{label, onConfirm} to add an explicit commit button. */
+function customTipField(grid, onChange, confirm) {
+  removeCustomTipField(grid);
+  const row = document.createElement("div");
+  row.className = "field tip-custom-row";
+  row.style.marginTop = "10px";
+  row.innerHTML = `<div style="display:flex;gap:10px">
+    <input type="number" inputmode="numeric" min="1" max="999" placeholder="Tip amount ($)" style="flex:1">
+    ${confirm ? `<button class="primary" style="margin:0;width:auto;padding:13px 18px;font-size:14px">${confirm.label}</button>` : ""}
+  </div>`;
+  grid.after(row);
+  const inp = row.querySelector("input");
+  const amount = () => { const a = parseInt(inp.value, 10); return a && a >= 1 ? a : null; };
+  inp.oninput = () => onChange(amount());
+  if (confirm) row.querySelector("button").onclick = () => { const a = amount(); if (a) confirm.onConfirm(a); };
+  inp.focus();
+  return row;
+}
+function removeCustomTipField(grid) {
+  const row = grid.nextElementSibling;
+  if (row && row.classList.contains("tip-custom-row")) row.remove();
+}
 function bindTip() {
   const wrap = $("tipGrid"); if (!wrap) return;
   wrap.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
     if (el.classList.contains("sel")) { // tap again to opt out — no tip
-      el.classList.remove("sel"); draft.tip = null; return;
+      el.classList.remove("sel"); draft.tip = null; removeCustomTipField(wrap); return;
     }
-    const v = el.dataset.tip;
-    let amt;
-    if (v === "custom") {
-      amt = parseInt(prompt("Tip amount ($)", "30") || "0", 10);
-      if (!amt || amt < 1) amt = null;
-    } else amt = parseInt(v, 10);
-    draft.tip = amt;
     wrap.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
-    if (amt) el.classList.add("sel");
+    el.classList.add("sel");
+    const v = el.dataset.tip;
+    if (v === "custom") {
+      draft.tip = null; // set once a valid amount is typed
+      customTipField(wrap, (a) => { draft.tip = a; });
+    } else {
+      removeCustomTipField(wrap);
+      draft.tip = parseInt(v, 10);
+    }
   });
 }
 
@@ -481,16 +515,23 @@ function renderTrack() {
   $("backBtn").onclick = renderHome;
   $("homeBtn").onclick = renderHome;
   const tt = $("trackTip");
-  if (tt) tt.querySelectorAll(".tip-amt").forEach((el) => el.onclick = async () => {
-    let amt;
-    if (el.dataset.tip === "custom") { amt = parseInt(prompt("Tip amount ($)", "30") || "0", 10); if (!amt || amt < 1) return; }
-    else amt = parseInt(el.dataset.tip, 10);
-    tt.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
-    el.classList.add("sel");
-    try { await backend.setTipRating(r.id, { tip: { amount: amt, mock: true } }); } catch (_) {}
-    banner("♥", "Thanks sent", "$" + amt + " tip recorded for " + r.operatorName + ".");
-    renderTrack();
-  });
+  if (tt) {
+    const sendTip = async (amt) => {
+      try { await backend.setTipRating(r.id, { tip: { amount: amt, mock: true } }); } catch (_) {}
+      banner("♥", "Thanks sent", "$" + amt + " tip recorded for " + r.operatorName + ".");
+      renderTrack();
+    };
+    tt.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
+      tt.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
+      el.classList.add("sel");
+      if (el.dataset.tip === "custom") {
+        customTipField(tt, () => {}, { label: "Add tip", onConfirm: sendTip });
+      } else {
+        removeCustomTipField(tt);
+        sendTip(parseInt(el.dataset.tip, 10));
+      }
+    });
+  }
 }
 
 function renderReady(r) {
@@ -545,13 +586,18 @@ function renderDone(r) {
   const tg = $("tipGrid");
   if (tg) tg.querySelectorAll(".tip-amt").forEach((el) => el.onclick = () => {
     if (el.classList.contains("sel")) { // tap again to opt out — no tip
-      el.classList.remove("sel"); tipAmt = null; return;
+      el.classList.remove("sel"); tipAmt = null; removeCustomTipField(tg); return;
     }
-    const v = el.dataset.tip;
-    if (v === "custom") { const a = parseInt(prompt("Tip amount ($)", "30") || "0", 10); tipAmt = (!a || a < 1) ? null : a; }
-    else tipAmt = parseInt(v, 10);
     tg.querySelectorAll(".tip-amt").forEach((x) => x.classList.remove("sel"));
-    if (tipAmt) el.classList.add("sel");
+    el.classList.add("sel");
+    const v = el.dataset.tip;
+    if (v === "custom") {
+      tipAmt = null;
+      customTipField(tg, (a) => { tipAmt = a; });
+    } else {
+      removeCustomTipField(tg);
+      tipAmt = parseInt(v, 10);
+    }
   });
   $("homeBtn").onclick = async () => {
     const patch = {};
