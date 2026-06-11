@@ -6,12 +6,8 @@
 // All routes require a valid session cookie. Field-level rules below mirror
 // what the old Firestore rules enforced (no client privilege escalation).
 import {
-  sessionFromRequest, listRequests, createRequest, updateRequest,
+  sessionFromRequest, listRequests, createRequest, updateRequest, corsHeaders, preflight,
 } from './_lib/valet-store.mjs';
-
-const json = (status, body) => new Response(JSON.stringify(body), {
-  status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-});
 
 // Whitelist what each role may write, so a customer can't reassign or advance.
 const OPERATOR_FIELDS = ['status', 'stepIndex', 'operatorUid', 'operatorName'];
@@ -19,6 +15,11 @@ const CUSTOMER_FIELDS = ['tip', 'rating'];
 const pick = (obj, keys) => Object.fromEntries(Object.entries(obj || {}).filter(([k]) => keys.includes(k)));
 
 export default async (req) => {
+  const pf = preflight(req); if (pf) return pf;
+  const cors = corsHeaders(req);
+  const json = (status, body) => new Response(JSON.stringify(body), {
+    status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...cors },
+  });
   try {
     const sess = sessionFromRequest(req);
     if (!sess) return json(401, { error: 'not signed in' });
@@ -27,7 +28,8 @@ export default async (req) => {
       const scope = new URL(req.url).searchParams.get('scope') || 'mine';
       const all = await listRequests();
       if (scope === 'queue') {
-        if (sess.role !== 'operator') return json(403, { error: 'operators only' });
+        // Line crew works the queue; the owner monitors it read-only.
+        if (sess.role !== 'operator' && sess.role !== 'owner') return json(403, { error: 'crew or owner only' });
         return json(200, { requests: all });
       }
       return json(200, { requests: all.filter((r) => r.customerUid === sess.uid) });

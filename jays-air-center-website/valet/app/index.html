@@ -20,13 +20,15 @@
     <div class="envbar" id="envbar"></div>
     <div class="notif" id="notif">
       <div class="nico" id="notifIco">✈</div>
-      <div class="ntx"><b id="notifTitle">Jay's Valet</b><span id="notifBody"></span></div>
+      <div class="ntx"><b id="notifTitle">Jay's Ramp Valet</b><span id="notifBody"></span></div>
     </div>
     <div class="app" id="root"><div class="spinner"></div></div>
   </div>
   <script type="module" src="./js/app.js"></script>
   <script>
-    if ("serviceWorker" in navigator) {
+    // Web only — the native Capacitor build bundles assets, so the SW shell
+    // cache would only get in the way there.
+    if ("serviceWorker" in navigator && location.protocol !== "capacitor:") {
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
     }
   </script>

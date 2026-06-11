@@ -38,7 +38,10 @@ const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const sign = (data) => crypto.createHmac('sha256', SECRET).update(data).digest('base64url');
 
 export function signSession(user) {
-  const body = b64({ uid: user.uid, role: user.role, name: user.name, email: user.email });
+  const body = b64({
+    uid: user.uid, role: user.role, name: user.name, email: user.email,
+    exp: Date.now() + SESSION_DAYS * 86400000,
+  });
   return `${body}.${sign(body)}`;
 }
 export function verifySession(token) {
@@ -47,8 +50,11 @@ export function verifySession(token) {
   const expected = sign(body);
   const a = Buffer.from(mac), b = Buffer.from(expected);
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
-  try { return JSON.parse(Buffer.from(body, 'base64url').toString('utf8')); }
-  catch { return null; }
+  try {
+    const s = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
+    if (!s.exp || s.exp < Date.now()) return null; // sessions expire server-side
+    return s;
+  } catch { return null; }
 }
 
 function parseCookies(header = '') {
@@ -57,10 +63,43 @@ function parseCookies(header = '') {
     return [c.slice(0, i).trim(), decodeURIComponent(c.slice(i + 1).trim())];
   }).filter(([k]) => k));
 }
-// Works with a Web Request (Functions v2): reads the Cookie header.
+// Works with a Web Request (Functions v2). Two transports for the same signed
+// token: the HttpOnly cookie (web app, same-origin) or an Authorization
+// bearer header (native Capacitor app, which serves from capacitor://localhost
+// where cross-origin cookies are unreliable).
 export function sessionFromRequest(req) {
+  const auth = req.headers.get('authorization') || '';
+  if (auth.startsWith('Bearer ')) {
+    const s = verifySession(auth.slice(7).trim());
+    if (s) return s;
+  }
   const raw = req.headers.get('cookie') || '';
   return verifySession(parseCookies(raw)[COOKIE]);
+}
+
+/* -------------------------------- CORS -------------------------------- */
+// Only the native app shells need CORS (web is same-origin). Bearer tokens,
+// not cookies, cross this boundary — so no Allow-Credentials.
+const APP_ORIGINS = new Set([
+  'capacitor://localhost', // iOS Capacitor
+  'ionic://localhost',
+  'http://localhost',      // Android Capacitor / local dev shells
+  'https://localhost',
+]);
+export function corsHeaders(req) {
+  const origin = req.headers.get('origin') || '';
+  if (!APP_ORIGINS.has(origin)) return {};
+  return {
+    'access-control-allow-origin': origin,
+    'access-control-allow-methods': 'GET,POST,OPTIONS',
+    'access-control-allow-headers': 'content-type,authorization',
+    'access-control-max-age': '86400',
+    'vary': 'Origin',
+  };
+}
+export function preflight(req) {
+  if (req.method !== 'OPTIONS') return null;
+  return new Response(null, { status: 204, headers: corsHeaders(req) });
 }
 export function setCookie(user) {
   const maxAge = SESSION_DAYS * 86400;
@@ -104,11 +143,15 @@ export function initials(name = '') {
 // First-run accounts so the app is instantly playable. Credentials are
 // documented in valet/app/SETUP.md. Safe to call on every request — it no-ops
 // once the accounts exist.
+// Seed password is env-configurable so production doesn't ship the dev
+// default. Set VALET_SEED_PASSWORD in Netlify before going live; the
+// tenant@ account doubles as the App Review demo login.
+const SEED_PW = process.env.VALET_SEED_PASSWORD || 'valet123';
 const SEED = [
-  { email: 'owner@jaysair.test', password: 'valet123', role: 'owner', name: 'George Marsh',
+  { email: 'owner@jaysair.test', password: SEED_PW, role: 'owner', name: 'George Marsh',
     tail: 'N559JC', aircraftType: 'Cirrus SR22T G6', home: 'Row B · 14' },
-  { email: 'operator@jaysair.test', password: 'valet123', role: 'operator', name: 'Marcus Reyes' },
-  { email: 'tenant@jaysair.test', password: 'valet123', role: 'tenant', name: 'Alex Rivera',
+  { email: 'operator@jaysair.test', password: SEED_PW, role: 'operator', name: 'Marcus Reyes' },
+  { email: 'tenant@jaysair.test', password: SEED_PW, role: 'tenant', name: 'Alex Rivera',
     tail: 'N218AT', aircraftType: 'Cessna 182T', home: 'Row C · TD 4' },
 ];
 let seeded = false;

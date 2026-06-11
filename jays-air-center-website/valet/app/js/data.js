@@ -6,7 +6,14 @@
 // We auto-detect: if /api/valet-auth answers, we're live; otherwise (static file
 // serving) we fall back to demo so the app is always runnable and shareable.
 
-const API = "/api";
+// Native Capacitor builds serve assets from capacitor://localhost, so the API
+// must be absolute and the session rides an Authorization header instead of a
+// cookie. On the web everything stays same-origin.
+export const NATIVE = (typeof window !== "undefined") &&
+  (window.location.protocol === "capacitor:" ||
+   !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()));
+const API = NATIVE ? "https://h9-jac-valet.netlify.app/api" : "/api";
+const TOKEN_KEY = "valet_token";
 const POLL_MS = 3000;
 
 const DEMO_USERS = {
@@ -158,11 +165,22 @@ class NetlifyBackend {
   constructor(initialUser) {
     this.mode = "live";
     this.user = initialUser || null;
+    this.token = localStorage.getItem(TOKEN_KEY) || null;
+  }
+  _headers(extra = {}) {
+    const h = { ...extra };
+    if (this.token) h.authorization = `Bearer ${this.token}`;
+    return h;
+  }
+  _storeToken(token) {
+    this.token = token || null;
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
   }
   async _post(path, body) {
     const res = await fetch(`${API}/${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: this._headers({ "content-type": "application/json" }),
       credentials: "same-origin",
       body: JSON.stringify(body),
     });
@@ -171,7 +189,7 @@ class NetlifyBackend {
     return data;
   }
   async _get(path) {
-    const res = await fetch(`${API}/${path}`, { credentials: "same-origin" });
+    const res = await fetch(`${API}/${path}`, { credentials: "same-origin", headers: this._headers() });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || "request-failed");
     return data;
@@ -181,17 +199,20 @@ class NetlifyBackend {
   demoSwitch() {} // n/a in live mode
 
   async signIn(email, password) {
-    const { user } = await this._post("valet-auth", { action: "login", email, password });
+    const { user, token } = await this._post("valet-auth", { action: "login", email, password });
+    this._storeToken(token);
     this.user = user;
     if (this._authCb) this._authCb(user);
   }
   async signUp({ name, email, password, tail, type, lease }) {
-    const { user } = await this._post("valet-auth", { action: "signup", name, email, password, tail, type, lease });
+    const { user, token } = await this._post("valet-auth", { action: "signup", name, email, password, tail, type, lease });
+    this._storeToken(token);
     this.user = user;
     if (this._authCb) this._authCb(user);
   }
   async signOut() {
     await this._post("valet-auth", { action: "logout" }).catch(() => {});
+    this._storeToken(null);
     this.user = null;
     if (this._authCb) this._authCb(null);
   }
@@ -239,7 +260,18 @@ function forceDemo() {
 
 // Probe the auth function. If it responds we're deployed on Netlify (live);
 // if it 404s / errors (plain static file server) we fall back to demo.
+// Native builds NEVER fall back to demo — the App Store build is a real
+// product that boots to login, even when offline.
 export async function getBackend() {
+  if (NATIVE) {
+    let user = null;
+    try {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const res = await fetch(`${API}/valet-auth`, token ? { headers: { authorization: `Bearer ${token}` } } : undefined);
+      if (res.ok) ({ user } = await res.json());
+    } catch (_) { /* offline — login screen will surface errors on attempt */ }
+    return new NetlifyBackend(user);
+  }
   if (forceDemo()) return new DemoBackend();
   try {
     const res = await fetch(`${API}/valet-auth`, { credentials: "same-origin" });

@@ -3,17 +3,18 @@
 //   POST /api/valet-auth {action} -> login | signup | logout
 // Sessions are signed HttpOnly cookies; passwords scrypt-hashed in Netlify Blobs.
 import {
-  ensureSeed, getUserByEmail, getUser, createUser, verifyPassword,
-  publicUser, setCookie, clearCookie, sessionFromRequest,
+  ensureSeed, getUserByEmail, getUser, createUser, verifyPassword, publicUser,
+  setCookie, clearCookie, sessionFromRequest, signSession, corsHeaders, preflight,
 } from './_lib/valet-store.mjs';
 
-const json = (status, body, cookie) => {
-  const headers = { 'content-type': 'application/json', 'cache-control': 'no-store' };
-  if (cookie) headers['set-cookie'] = cookie;
-  return new Response(JSON.stringify(body), { status, headers });
-};
-
 export default async (req) => {
+  const pf = preflight(req); if (pf) return pf;
+  const cors = corsHeaders(req);
+  const json = (status, body, cookie) => {
+    const headers = { 'content-type': 'application/json', 'cache-control': 'no-store', ...cors };
+    if (cookie) headers['set-cookie'] = cookie;
+    return new Response(JSON.stringify(body), { status, headers });
+  };
   try {
     await ensureSeed();
 
@@ -32,19 +33,20 @@ export default async (req) => {
     if (p.action === 'login') {
       const u = await getUserByEmail(p.email || '');
       if (!u || !verifyPassword(p.password || '', u.pass)) return json(401, { error: 'invalid-credential' });
-      return json(200, { user: publicUser(u) }, setCookie(u));
+      // token mirrors the cookie session — used by the native app as a bearer
+      return json(200, { user: publicUser(u), token: signSession(u) }, setCookie(u));
     }
 
     if (p.action === 'signup') {
       if (!p.email || !p.password) return json(400, { error: 'missing email or password' });
-      if (String(p.password).length < 6) return json(400, { error: 'weak-password' });
+      if (String(p.password).length < 8) return json(400, { error: 'weak-password' });
       try {
         const u = await createUser({
           name: p.name || 'New Tenant', email: p.email, password: p.password, role: 'tenant',
           tail: p.tail || null, aircraftType: p.type || null,
           home: (p.lease || '').replace('Tie-down — ', '') || null,
         });
-        return json(200, { user: publicUser(u) }, setCookie(u));
+        return json(200, { user: publicUser(u), token: signSession(u) }, setCookie(u));
       } catch (e) {
         if (e.code === 'email-already-in-use') return json(409, { error: 'email-already-in-use' });
         throw e;
