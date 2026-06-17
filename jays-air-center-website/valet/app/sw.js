@@ -2,7 +2,7 @@
 // No push messaging here: status updates surface as in-app banners driven by
 // the app's polling loop. Network-first for navigations so the app stays fresh;
 // cache-first for static assets.
-const CACHE = "valet-shell-v8";
+const CACHE = "valet-shell-v9";
 const SHELL = [
   "./",
   "./index.html",

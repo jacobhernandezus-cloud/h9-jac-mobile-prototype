@@ -312,7 +312,7 @@ function openFlow(key) {
   // rideshare. The at-request tip selector only shows in mock/recorded modes.
   const formTip = f.showTip && !(backend.mode === "live" && tipPay.configured);
   if (formTip) {
-    const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
+    const tips = [["5", "$5"], ["10", "$10"], ["20", "$20"], ["custom", "Custom"]];
     h += `<div class="section-label">Add a tip — optional</div>
       <div class="tip-grid" id="tipGrid">` +
       tips.map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("") +
@@ -590,7 +590,7 @@ function renderTrack() {
       ? `<div class="note" style="text-align:center">♥ $${r.tip.amount} tip added for ${r.operatorName || "your lineman"}.</div>`
       : (r.operatorName
         ? `<div class="section-label">Say thanks — tip your lineman</div>
-           <div class="tip-grid" id="trackTip">${[["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]].map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("")}</div>
+           <div class="tip-grid" id="trackTip">${[["5", "$5"], ["10", "$10"], ["20", "$20"], ["custom", "Custom"]].map(([v, l]) => `<div class="tip-amt" data-tip="${v}">${l}</div>`).join("")}</div>
            <div class="note">${tipNoteCopy(r.operatorName)}</div>`
         : "")}
     <button class="ghost" id="homeBtn" style="margin-top:18px">Back to home</button>`;
@@ -651,7 +651,7 @@ function renderDone(r) {
   const linemanName = r.operatorName || "your lineman";
   let stars = r.rating || 0;
   let tipAmt = null; // newly selected post-completion tip
-  const tips = [["10", "$10"], ["20", "$20"], ["40", "$40"], ["custom", "Custom"]];
+  const tips = [["5", "$5"], ["10", "$10"], ["20", "$20"], ["custom", "Custom"]];
   root.innerHTML = `
     <div class="back" id="backBtn">‹ Back</div>
     <div class="center-pad" style="justify-content:flex-start;padding-top:30px">
